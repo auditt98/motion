@@ -1,0 +1,20 @@
+{
+  "name": "@motion/party",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "partykit dev",
+    "deploy": "partykit deploy",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.99.1",
+    "partykit": "^0.0.111",
+    "partysocket": "^1",
+    "y-partykit": "^0",
+    "yjs": "^13"
+  },
+  "devDependencies": {
+    "typescript": "^5.7"
+  }
+}

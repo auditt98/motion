@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.turbo/
+.partykit/
+.env
+.env.local
+*.log
+.DS_Store
+*.tsbuildinfo
+supabase/.temp/

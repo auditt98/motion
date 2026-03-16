@@ -1,0 +1,22 @@
+{
+  "name": "motion",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "dev:web": "turbo dev --filter=@motion/web",
+    "dev:party": "turbo dev --filter=@motion/party",
+    "dev:agent": "turbo dev --filter=@motion/agent-runtime",
+    "dev:mcp": "turbo dev --filter=@motion/mcp-server"
+  },
+  "devDependencies": {
+    "turbo": "^2",
+    "typescript": "^5.7"
+  },
+  "packageManager": "pnpm@10.14.0",
+  "engines": {
+    "node": ">=18"
+  }
+}
