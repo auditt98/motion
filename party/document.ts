@@ -132,13 +132,22 @@ export default class DocumentServer implements Party.Server {
     const pageId = this.room.id;
 
     let workspaceId = meta?.workspace_id;
+    let pageTitle = "";
     if (!workspaceId) {
       const { data } = await this.supabase
         .from("pages")
-        .select("workspace_id")
+        .select("workspace_id, title")
         .eq("id", pageId)
         .single();
       workspaceId = data?.workspace_id;
+      pageTitle = data?.title || "";
+    } else {
+      const { data } = await this.supabase
+        .from("pages")
+        .select("title")
+        .eq("id", pageId)
+        .single();
+      pageTitle = data?.title || "";
     }
 
     if (!workspaceId) return;
@@ -162,8 +171,83 @@ export default class DocumentServer implements Party.Server {
       console.error("[version-history] Failed to save snapshot:", error);
     } else {
       this.hasChanges = false;
+      // Update the search index (best-effort, don't block on failure)
+      this.saveSearchIndex(pageId, workspaceId, pageTitle).catch((err) =>
+        console.error("[search-index] Error:", err),
+      );
     }
   }
+
+  /**
+   * Extract plain text from the Yjs document and UPSERT into the search index.
+   */
+  private async saveSearchIndex(
+    pageId: string,
+    workspaceId: string,
+    title: string,
+  ) {
+    if (!this.ydoc || !this.supabase) return;
+
+    const fragment = this.ydoc.getXmlFragment("default");
+    const parts: string[] = [];
+    for (let i = 0; i < fragment.length; i++) {
+      const child = fragment.get(i);
+      if (child instanceof Y.XmlText) {
+        parts.push(child.toString());
+      } else if (child instanceof Y.XmlElement) {
+        parts.push(xmlElementToText(child));
+      }
+    }
+    const bodyText = parts.join("\n");
+
+    const { error } = await this.supabase
+      .from("page_search_index")
+      .upsert(
+        {
+          page_id: pageId,
+          workspace_id: workspaceId,
+          title,
+          body_text: bodyText,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "page_id" },
+      );
+
+    if (error) {
+      console.error("[search-index] Failed to update search index:", error);
+      return;
+    }
+
+    // Trigger async embedding generation via Supabase Edge Function
+    const supabaseUrl = this.room.env.SUPABASE_URL as string | undefined;
+    const supabaseKey = this.room.env.SUPABASE_SERVICE_ROLE_KEY as string | undefined;
+    if (supabaseUrl && supabaseKey) {
+      fetch(`${supabaseUrl}/functions/v1/embed`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${supabaseKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ page_id: pageId }),
+      }).catch((err) =>
+        console.error("[search-index] Failed to trigger embedding:", err),
+      );
+    }
+  }
+}
+
+/** Recursively extract plain text from a Yjs XmlElement. */
+function xmlElementToText(element: Y.XmlElement): string {
+  const parts: string[] = [];
+  for (let i = 0; i < element.length; i++) {
+    const child = element.get(i);
+    if (child instanceof Y.XmlText) {
+      parts.push(child.toString());
+    } else if (child instanceof Y.XmlElement) {
+      parts.push(xmlElementToText(child));
+    }
+  }
+  return parts.join("");
 }
 
 DocumentServer satisfies Party.Worker;

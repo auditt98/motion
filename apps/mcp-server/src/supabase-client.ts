@@ -357,6 +357,31 @@ export class SupabaseClient {
     return res.ok;
   }
 
+  // --- Search ---
+
+  async searchPages(
+    workspaceId: string,
+    queryText: string,
+    limit = 20,
+  ): Promise<SearchResultRow[]> {
+    // Call the search_pages RPC function via PostgREST
+    const res = await fetch(
+      `${this.config.url}/rest/v1/rpc/search_pages`,
+      {
+        method: "POST",
+        headers: this.headers,
+        body: JSON.stringify({
+          ws_id: workspaceId,
+          query_text: queryText,
+          query_embedding: null,
+          result_limit: limit,
+        }),
+      },
+    );
+    if (!res.ok) return [];
+    return (await res.json()) as SearchResultRow[];
+  }
+
   // --- Versions ---
 
   async listVersions(pageId: string): Promise<VersionRow[]> {
@@ -421,6 +446,15 @@ export interface CommentThreadRow {
   created_by: string;
   created_at: string;
   comments?: CommentRow[];
+}
+
+export interface SearchResultRow {
+  page_id: string;
+  title: string;
+  snippet: string;
+  fts_rank: number;
+  semantic_score: number;
+  combined_score: number;
 }
 
 export interface VersionRow {

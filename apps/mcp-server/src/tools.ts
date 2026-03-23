@@ -25,6 +25,7 @@ export function registerAllTools(server: McpServer, ctx: ToolContext): void {
   registerVersionTools(server, ctx);
   registerExportTools(server, ctx);
   registerSuggestionTools(server, ctx);
+  registerSearchTools(server, ctx);
 }
 
 /**
@@ -1047,6 +1048,47 @@ function registerSuggestionTools(server: McpServer, ctx: ToolContext): void {
       peer.updateAwareness("idle", "");
       return {
         content: [{ type: "text" as const, text: `Rejected ${count} suggestion(s).` }],
+      };
+    },
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Search tools
+// ---------------------------------------------------------------------------
+
+function registerSearchTools(server: McpServer, ctx: ToolContext): void {
+  server.tool(
+    "search_workspace",
+    "Search across all pages in the workspace by content and title. Uses full-text search for exact matches and semantic search for natural language queries. Returns matching pages with relevant text snippets.",
+    {
+      query: z.string().describe("The search query — can be keywords or a natural language question"),
+      limit: z.number().optional().default(10).describe("Maximum number of results to return (default: 10, max: 50)"),
+    },
+    async ({ query, limit }) => {
+      const resultLimit = Math.min(Math.max(limit ?? 10, 1), 50);
+      const results = await ctx.supabase.searchPages(
+        ctx.workspaceId,
+        query,
+        resultLimit,
+      );
+
+      if (results.length === 0) {
+        return {
+          content: [{ type: "text" as const, text: `No pages found matching "${query}".` }],
+        };
+      }
+
+      const lines = results.map((r, i) => {
+        const snippet = r.snippet.replace(/\*\*/g, "");
+        return `${i + 1}. **${r.title}** (page_id: ${r.page_id})\n   ${snippet}`;
+      });
+
+      return {
+        content: [{
+          type: "text" as const,
+          text: `Found ${results.length} page(s) matching "${query}":\n\n${lines.join("\n\n")}`,
+        }],
       };
     },
   );

@@ -10,17 +10,15 @@ import { WorkspaceProvider } from "@/contexts/WorkspaceContext";
 import {
   Sidebar as WeaveSidebar,
   SidebarNavItem,
-  CommandPalette as WeaveCommandPalette,
   Accordion,
   Button,
   Avatar,
   Badge,
   ToastProvider,
   Tooltip,
-  type CommandItem,
 } from "@weave-design-system/react";
 import { MotionSidebarContent } from "../workspace/MotionSidebar";
-import { PageIcon } from "@/components/shared/PageIcon";
+import { CommandPalette } from "../workspace/CommandPalette";
 import { Dashboard } from "../workspace/Dashboard";
 import { EditorPage } from "../editor/EditorPage";
 import { SettingsPage } from "../workspace/SettingsPage";
@@ -117,48 +115,7 @@ export function AppLayout({ user, onSignOut }: AppLayoutProps) {
     user.email?.split("@")[0] ||
     "User";
 
-  // Build command palette items from pages
-  const commandItems: CommandItem[] = useMemo(() => {
-    const items: CommandItem[] = [];
-
-    // Recent pages
-    for (const rp of recentPages.slice(0, 6)) {
-      items.push({
-        id: `recent-${rp.page_id}`,
-        label: rp.title,
-        icon: <PageIcon icon={rp.icon} />,
-        section: "Recent",
-        onSelect: () => navigate(`/page/${rp.page_id}`),
-      });
-    }
-
-    // All pages
-    for (const page of pages) {
-      items.push({
-        id: `page-${page.id}`,
-        label: page.title,
-        icon: <PageIcon icon={page.icon} />,
-        section: "Pages",
-        onSelect: () => navigate(`/page/${page.id}`),
-      });
-    }
-
-    // Actions
-    items.push({
-      id: "action-new-page",
-      label: "Create new page",
-      section: "Actions",
-      onSelect: handleCreatePage,
-    });
-    items.push({
-      id: "action-settings",
-      label: "Open settings",
-      section: "Actions",
-      onSelect: () => navigate("/settings"),
-    });
-
-    return items;
-  }, [pages, recentPages, navigate, handleCreatePage]);
+  // No longer building commandItems — the custom CommandPalette handles search internally
 
   const pageId = location.pathname.match(/\/page\/(.+)/)?.[1];
 
@@ -328,11 +285,13 @@ export function AppLayout({ user, onSignOut }: AppLayoutProps) {
             </Routes>
           </main>
 
-          <WeaveCommandPalette
+          <CommandPalette
             open={commandPaletteOpen}
-            onOpenChange={setCommandPaletteOpen}
-            items={commandItems}
-            placeholder="Search pages, actions..."
+            onClose={() => setCommandPaletteOpen(false)}
+            pages={pages}
+            folders={folders}
+            recentPages={recentPages}
+            workspaceId={workspaceId}
           />
         </div>
       </WorkspaceProvider>
