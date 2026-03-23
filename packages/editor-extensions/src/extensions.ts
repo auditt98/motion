@@ -154,6 +154,17 @@ export const HtmlEmbedExtension = Node.create({
           "data-html-content": attributes.htmlContent,
         }),
       },
+      height: {
+        default: null,
+        parseHTML: (element: HTMLElement) => {
+          const h = element.getAttribute("data-height");
+          return h ? Number(h) : null;
+        },
+        renderHTML: (attributes: Record<string, unknown>) => {
+          if (!attributes.height) return {};
+          return { "data-height": attributes.height };
+        },
+      },
     };
   },
 

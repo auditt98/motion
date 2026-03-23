@@ -259,6 +259,11 @@
   box-shadow: 0 0 0 2px rgba(196, 67, 43, 0.15);
 }
 
+.html-embed-block.interactive {
+  border-color: var(--color-forest, #2d6a4f);
+  box-shadow: 0 0 0 2px rgba(45, 106, 79, 0.15);
+}
+
 .html-embed-header {
   display: flex;
   align-items: center;
@@ -274,6 +279,18 @@
 .html-embed-label {
   font-weight: 500;
   font-family: "JetBrains Mono", monospace;
+}
+
+.html-embed-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.html-embed-hint {
+  font-size: 11px;
+  color: var(--color-textSecondary, #9ca3af);
+  font-style: italic;
 }
 
 .html-embed-toggle-btn {
@@ -309,11 +326,40 @@
   color: var(--color-textSecondary, #9ca3af);
 }
 
+.html-embed-preview-container {
+  position: relative;
+}
+
+.html-embed-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  cursor: default;
+}
+
 .html-embed-preview {
   width: 100%;
   min-height: 60px;
   border: none;
   display: block;
+}
+
+.html-embed-resize-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 12px;
+  cursor: ns-resize;
+  color: var(--color-textSecondary, #9ca3af);
+  background: var(--color-surface, #f9fafb);
+  border-top: 1px solid var(--color-border, #e5e7eb);
+  user-select: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.html-embed-block:hover .html-embed-resize-handle {
+  opacity: 1;
 }
 
 .html-embed-empty {
