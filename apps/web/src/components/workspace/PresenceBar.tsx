@@ -5,6 +5,7 @@ interface PresenceBarProps {
   followingClientId: number | null;
   onFollowPeer: (clientId: number) => void;
   onGoToPeer: (clientId: number) => void;
+  maxVisible?: number;
 }
 
 function getInitials(name: string): string {
@@ -21,11 +22,15 @@ export function PresenceBar({
   followingClientId,
   onFollowPeer,
   onGoToPeer,
+  maxVisible,
 }: PresenceBarProps) {
+  const visiblePeers = maxVisible ? peers.slice(0, maxVisible) : peers;
+  const overflowCount = maxVisible ? Math.max(0, peers.length - maxVisible) : 0;
+
   return (
     <div className="flex items-center">
       <div className="flex -space-x-2">
-        {peers.map((peer) => {
+        {visiblePeers.map((peer) => {
           const isFollowing = followingClientId === peer.clientId;
           return (
             <div key={peer.clientId} className="relative group">
@@ -53,7 +58,7 @@ export function PresenceBar({
                 </div>
               )}
               {/* Tooltip with go-to-cursor option */}
-              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 px-2 py-1.5 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity z-50 flex flex-col items-center gap-1">
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 px-2 py-1.5 text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity z-50 flex flex-col items-center gap-1" style={{ background: "var(--color-text-primary)", color: "var(--color-bg)" }}>
                 <span>
                   {peer.name}
                   {peer.isAgent ? ` — ${peer.status || "idle"}` : ""}
@@ -72,6 +77,18 @@ export function PresenceBar({
             </div>
           );
         })}
+        {overflowCount > 0 && (
+          <div
+            className="w-7 h-7 rounded-full border-2 flex items-center justify-center text-[10px] font-semibold"
+            style={{
+              background: "var(--color-surface)",
+              borderColor: "white",
+              color: "var(--color-textSecondary)",
+            }}
+          >
+            +{overflowCount}
+          </div>
+        )}
       </div>
     </div>
   );

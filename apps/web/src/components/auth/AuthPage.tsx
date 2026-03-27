@@ -35,11 +35,11 @@ export function AuthPage({ onSignIn, onSignUp }: AuthPageProps) {
 
   if (signupSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="max-w-sm w-full bg-white p-8 rounded-xl shadow-sm border text-center">
+      <div className="min-h-screen flex items-center justify-center bg-theme-surface">
+        <div className="max-w-sm w-full bg-theme p-8 rounded-xl shadow-sm border border-theme text-center">
           <div className="text-4xl mb-4">&#x2709;&#xfe0f;</div>
           <h2 className="text-lg font-semibold mb-2">Check your email</h2>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-theme-secondary">
             We sent a confirmation link to <strong>{email}</strong>. Click it to
             activate your account.
           </p>
@@ -58,10 +58,10 @@ export function AuthPage({ onSignIn, onSignUp }: AuthPageProps) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-sm w-full bg-white p-8 rounded-xl shadow-sm border">
+    <div className="min-h-screen flex items-center justify-center bg-theme-surface">
+      <div className="max-w-sm w-full bg-theme p-8 rounded-xl shadow-sm border border-theme">
         <h1 className="text-2xl font-bold text-center mb-1">{APP_NAME}</h1>
-        <p className="text-sm text-gray-500 text-center mb-6">
+        <p className="text-sm text-theme-secondary text-center mb-6">
           {mode === "signin"
             ? "Sign in to your workspace"
             : "Create your account"}
@@ -69,7 +69,7 @@ export function AuthPage({ onSignIn, onSignUp }: AuthPageProps) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-theme-primary mb-1">
               Email
             </label>
             <input
@@ -77,12 +77,12 @@ export function AuthPage({ onSignIn, onSignUp }: AuthPageProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-theme rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-(--color-border) focus:border-transparent"
               placeholder="you@example.com"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-theme-primary mb-1">
               Password
             </label>
             <input
@@ -91,7 +91,7 @@ export function AuthPage({ onSignIn, onSignUp }: AuthPageProps) {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-theme rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-(--color-border) focus:border-transparent"
               placeholder="At least 6 characters"
             />
           </div>
@@ -105,7 +105,8 @@ export function AuthPage({ onSignIn, onSignUp }: AuthPageProps) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-2 text-sm font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
+            style={{ background: "var(--color-text-primary)", color: "var(--color-bg)" }}
           >
             {loading
               ? "..."
@@ -115,7 +116,7 @@ export function AuthPage({ onSignIn, onSignUp }: AuthPageProps) {
           </button>
         </form>
 
-        <p className="text-sm text-gray-500 text-center mt-4">
+        <p className="text-sm text-theme-secondary text-center mt-4">
           {mode === "signin" ? (
             <>
               Don't have an account?{" "}

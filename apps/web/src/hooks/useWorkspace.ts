@@ -11,6 +11,7 @@ export interface PageItem {
   folder_id: string | null;
   position: number;
   is_favorite: boolean;
+  page_type: "document" | "database";
   updated_at: string;
   last_edited_by: string | null;
   cover_url: string | null;
@@ -42,7 +43,7 @@ interface WorkspaceState {
   loading: boolean;
 }
 
-const PAGE_SELECT = "id, title, icon, parent_id, folder_id, position, is_favorite, updated_at, last_edited_by, cover_url, deleted_at, deleted_by";
+const PAGE_SELECT = "id, title, icon, parent_id, folder_id, position, is_favorite, page_type, updated_at, last_edited_by, cover_url, deleted_at, deleted_by";
 
 export function useWorkspace(user: User) {
   const [state, setState] = useState<WorkspaceState>({
@@ -112,16 +113,21 @@ export function useWorkspace(user: User) {
     initRef.current = true;
 
     async function init() {
-      const workspaces = await loadWorkspaces();
+      const [workspaces, userRow] = await Promise.all([
+        loadWorkspaces(),
+        supabase.from("users").select("default_workspace_id").eq("id", user.id).single(),
+      ]);
 
       let workspaceId: string;
       let currentUserRole: WorkspaceState["currentUserRole"] = null;
 
       if (workspaces.length > 0) {
-        // Prefer a workspace where user is not the owner (i.e. was invited),
-        // otherwise fall back to the first one (their own workspace)
+        // Prefer user's explicit default, then invited workspace, then first
+        const defaultWs = userRow.data?.default_workspace_id
+          ? workspaces.find((w) => w.workspace_id === userRow.data.default_workspace_id)
+          : null;
         const invited = workspaces.find((m) => m.role !== "owner");
-        const pick = invited || workspaces[0];
+        const pick = defaultWs || invited || workspaces[0];
         workspaceId = pick.workspace_id;
         currentUserRole = pick.role;
       } else {
@@ -200,6 +206,39 @@ export function useWorkspace(user: User) {
 
       if (error || !data) {
         console.error("Failed to create page:", error);
+        return null;
+      }
+
+      setState((s) => ({ ...s, pages: [...s.pages, data as PageItem] }));
+      return data as PageItem;
+    },
+    [state.workspaceId, state.pages, user.id],
+  );
+
+  const createDatabase = useCallback(
+    async (title = "Untitled database", folderId: string | null = null) => {
+      if (!state.workspaceId) return null;
+
+      const maxPos = state.pages.reduce(
+        (max, p) => Math.max(max, p.position),
+        -1,
+      );
+
+      const { data, error } = await supabase
+        .from("pages")
+        .insert({
+          workspace_id: state.workspaceId,
+          title,
+          folder_id: folderId,
+          position: maxPos + 1,
+          page_type: "database",
+          created_by: user.id,
+        })
+        .select(PAGE_SELECT)
+        .single();
+
+      if (error || !data) {
+        console.error("Failed to create database:", error);
         return null;
       }
 
@@ -361,10 +400,11 @@ export function useWorkspace(user: User) {
         .sort((a, b) => a.position - b.position);
 
       const siblingPositions = siblings.map((p) => p.position);
-      let { position: newPosition, needsRenumber } = computeInsertPosition(
+      const { position, needsRenumber } = computeInsertPosition(
         siblingPositions,
         targetIndex,
       );
+      let newPosition = position;
 
       // If gap exhausted, renumber all siblings and pick the right slot
       if (needsRenumber) {
@@ -652,6 +692,7 @@ export function useWorkspace(user: User) {
     trashPages: state.trashPages,
     loading: state.loading,
     createPage,
+    createDatabase,
     renamePage,
     deletePage,
     restorePage,

@@ -3,8 +3,8 @@ import type { SyncStatus } from "@/hooks/useSyncStatus";
 export function SyncStatusIndicator({ status }: { status: SyncStatus }) {
   if (status === "saving") {
     return (
-      <div className="flex items-center gap-1.5 text-gray-400 text-xs">
-        <div className="w-3 h-3 border-[1.5px] border-gray-300 border-t-gray-500 rounded-full animate-spin" />
+      <div className="flex items-center gap-1.5 text-theme-secondary text-xs">
+        <div className="w-3 h-3 border-[1.5px] border-theme rounded-full animate-spin" style={{ borderTopColor: "var(--color-text-secondary)" }} />
         <span>Saving...</span>
       </div>
     );

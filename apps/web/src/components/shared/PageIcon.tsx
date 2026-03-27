@@ -1,5 +1,8 @@
+import type { PageType } from "@motion/shared";
+
 interface PageIconProps {
   icon: string | null;
+  pageType?: PageType;
   size?: "sm" | "md" | "lg";
   className?: string;
 }
@@ -10,11 +13,33 @@ const sizes = {
   lg: { text: "text-2xl", svg: 24 },
 };
 
-export function PageIcon({ icon, size = "md", className = "" }: PageIconProps) {
+export function PageIcon({ icon, pageType, size = "md", className = "" }: PageIconProps) {
   const { text, svg } = sizes[size];
 
   if (icon) {
     return <span className={`${text} shrink-0 ${className}`}>{icon}</span>;
+  }
+
+  if (pageType === "database") {
+    return (
+      <svg
+        width={svg}
+        height={svg}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={`shrink-0 ${className}`}
+        style={{ color: "var(--color-textSecondary)" }}
+      >
+        <rect x="3" y="3" width="7" height="7" rx="1" />
+        <rect x="14" y="3" width="7" height="7" rx="1" />
+        <rect x="3" y="14" width="7" height="7" rx="1" />
+        <rect x="14" y="14" width="7" height="7" rx="1" />
+      </svg>
+    );
   }
 
   return (

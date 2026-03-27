@@ -56,7 +56,7 @@ export function TrashPanel({ pages, onRestore, onPermanentlyDelete, onClose }: T
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded hover:bg-gray-100"
+            className="p-1 rounded hover:bg-theme-surface"
             style={{ color: "var(--color-textSecondary)" }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -94,7 +94,7 @@ export function TrashPanel({ pages, onRestore, onPermanentlyDelete, onClose }: T
               {pages.map((page) => (
                 <div
                   key={page.id}
-                  className="flex items-center gap-3 px-5 py-2.5 hover:bg-gray-50"
+                  className="flex items-center gap-3 px-5 py-2.5 hover:bg-theme-surface"
                   style={{ borderBottom: "1px solid var(--color-border)" }}
                 >
                   {/* Icon + title */}

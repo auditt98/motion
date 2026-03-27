@@ -5,6 +5,7 @@ import type { PageItem, FolderItem } from "@/hooks/useWorkspace";
 import type { RecentPage, AgentActivityItem } from "@/hooks/usePageActivity";
 import { PageIcon } from "@/components/shared/PageIcon";
 import type { MemberWithUser } from "@/hooks/useWorkspaceMembers";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import {
   Card,
   Button,
@@ -39,8 +40,10 @@ interface DashboardProps {
   members: MemberWithUser[];
   membersLoading: boolean;
   onCreatePage: (title?: string, parentId?: string | null, folderId?: string | null) => Promise<PageItem | null>;
+  onCreateDatabase: (title?: string, folderId?: string | null) => Promise<PageItem | null>;
   onCreateFolder: (name?: string) => Promise<FolderItem | null>;
   onMovePageToFolder: (pageId: string, folderId: string | null) => void;
+  onImport: () => void;
 }
 
 function getGreeting(): string {
@@ -74,7 +77,7 @@ function DraggablePageCard({ page, onClick }: { page: PageItem; onClick: () => v
     <div ref={setNodeRef} style={style} {...attributes} {...listeners} onClick={onClick}>
       <Card className="cursor-grab active:cursor-grabbing h-full">
         <Card.Content className="flex flex-col gap-2">
-          <PageIcon icon={page.icon} size="lg" />
+          <PageIcon icon={page.icon} pageType={page.page_type} size="lg" />
           <span className="text-sm font-medium truncate" style={{ color: "var(--color-textPrimary)" }}>{page.title}</span>
           <span className="text-xs" style={{ color: "var(--color-textSecondary)" }}>{timeAgo(page.updated_at)}</span>
         </Card.Content>
@@ -121,8 +124,10 @@ export function Dashboard({
   members,
   membersLoading,
   onCreatePage,
+  onCreateDatabase,
   onCreateFolder,
   onMovePageToFolder,
+  onImport,
 }: DashboardProps) {
   const navigate = useNavigate();
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
@@ -132,10 +137,7 @@ export function Dashboard({
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   );
 
-  const displayName =
-    user.user_metadata?.full_name ||
-    user.email?.split("@")[0] ||
-    "User";
+  const { resolvedDisplayName: displayName } = useUserProfile(user.id, user.email);
 
   const visiblePages = activeFolderId
     ? pages.filter((p) => p.folder_id === activeFolderId)
@@ -174,6 +176,11 @@ export function Dashboard({
     if (page) navigate(`/page/${page.id}`);
   }
 
+  async function handleCreateDatabase() {
+    const page = await onCreateDatabase(undefined, activeFolderId);
+    if (page) navigate(`/page/${page.id}`);
+  }
+
   // Agent activity items for ActivityFeed
   const agentActivityItems: ActivityItem[] = agentActivity.map((item) => ({
     id: item.id,
@@ -201,27 +208,37 @@ export function Dashboard({
 
   return (
     <div className="flex-1 overflow-y-auto" style={{ background: "var(--color-bg)" }}>
-      <div className="max-w-5xl mx-auto px-8 py-12">
+      <div className="max-w-5xl mx-auto px-4 py-6 sm:px-8 sm:py-12">
         {/* Header */}
-        <div className="flex items-center justify-between mb-10">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8 sm:mb-10">
           <div>
-            <h1 className="text-2xl font-semibold" style={{ color: "var(--color-textPrimary)" }}>
+            <h1 className="text-xl sm:text-2xl font-semibold" style={{ color: "var(--color-textPrimary)" }}>
               {getGreeting()}, {displayName}
             </h1>
             <p className="text-sm mt-1" style={{ color: "var(--color-textSecondary)" }}>
               {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="primary" size="sm" onClick={handleCreatePage}
               leftIcon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>}
             >
               New page
             </Button>
+            <Button variant="outline" size="sm" onClick={handleCreateDatabase}
+              leftIcon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>}
+            >
+              New database
+            </Button>
             <Button variant="outline" size="sm" onClick={() => onCreateFolder()}
               leftIcon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>}
             >
               New folder
+            </Button>
+            <Button variant="outline" size="sm" onClick={onImport}
+              leftIcon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>}
+            >
+              Import
             </Button>
           </div>
         </div>
@@ -234,13 +251,13 @@ export function Dashboard({
             </h2>
             <div className="flex gap-3 overflow-x-auto pb-1">
               {recentPages.map((rp) => (
-                <Card key={rp.page_id} className="shrink-0 cursor-pointer"
+                <Card key={rp.page_id} className="shrink-0 cursor-pointer min-w-0"
                   onClick={() => navigate(`/page/${rp.page_id}`)}
                 >
                   <Card.Content className="flex items-center gap-2 py-2 px-3">
                     <PageIcon icon={rp.icon} />
-                    <span className="text-sm truncate max-w-35" style={{ color: "var(--color-textPrimary)" }}>{rp.title}</span>
-                    <span className="text-xs shrink-0" style={{ color: "var(--color-textSecondary)" }}>{timeAgo(rp.last_visited)}</span>
+                    <span className="text-sm truncate max-w-24 sm:max-w-35" style={{ color: "var(--color-textPrimary)" }}>{rp.title}</span>
+                    <span className="text-xs shrink-0 hidden sm:inline" style={{ color: "var(--color-textSecondary)" }}>{timeAgo(rp.last_visited)}</span>
                   </Card.Content>
                 </Card>
               ))}
@@ -297,7 +314,7 @@ export function Dashboard({
               {activeDragPage && (
                 <Card className="shadow-(--shadow-3)">
                   <Card.Content className="flex items-center gap-2 py-2 px-3">
-                    <PageIcon icon={activeDragPage.icon} />
+                    <PageIcon icon={activeDragPage.icon} pageType={activeDragPage.page_type} />
                     <span className="text-sm truncate">{activeDragPage.title}</span>
                   </Card.Content>
                 </Card>
@@ -320,7 +337,7 @@ export function Dashboard({
               {[1, 2, 3].map((i) => (<SkeletonLoader key={i} shape="avatar" />))}
             </div>
           ) : (
-            <div className="flex flex-wrap gap-3">
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3">
               {members.map((member) => {
                 const name = member.user.display_name || member.user.email.split("@")[0];
                 return (

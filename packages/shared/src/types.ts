@@ -51,6 +51,8 @@ export interface WorkspaceInviteLink {
   created_at: string;
 }
 
+export type PageType = "document" | "database";
+
 export interface Page {
   id: string;
   workspace_id: string;
@@ -60,6 +62,7 @@ export interface Page {
   cover_url: string | null;
   position: number;
   is_favorite: boolean;
+  page_type: PageType;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -99,7 +102,8 @@ export type BlockType =
   | "embed"
   | "table"
   | "syncedBlock"
-  | "columnLayout";
+  | "columnLayout"
+  | "inlineDatabase";
 
 export interface AgentTask {
   id: string;
@@ -193,4 +197,63 @@ export interface AgentToken {
   created_by: string;
   revoked_at: string | null;
   created_at: string;
+}
+
+// --- Page Permissions ---
+
+export type PageAccessLevel = "view" | "comment" | "edit";
+export type PublicAccessLevel = "view" | "comment";
+
+export interface PagePermissions {
+  id: string;
+  page_id: string;
+  workspace_id: string;
+  is_public: boolean;
+  public_access_level: PublicAccessLevel;
+  public_slug: string | null;
+  is_restricted: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PageAccessEntry {
+  id: string;
+  page_id: string;
+  user_id: string;
+  access_level: PageAccessLevel;
+  granted_by: string | null;
+  created_at: string;
+  user?: Pick<User, "id" | "email" | "display_name" | "avatar_url">;
+}
+
+// --- Database / Structured Data Views ---
+
+export type ColumnType =
+  | "text"
+  | "number"
+  | "select"
+  | "multi_select"
+  | "date"
+  | "checkbox"
+  | "person"
+  | "url";
+
+export interface DatabaseColumn {
+  id: string;
+  name: string;
+  type: ColumnType;
+  width: number;
+  options?: string[]; // for select / multi_select
+}
+
+export interface DatabaseMeta {
+  columns: DatabaseColumn[];
+}
+
+export interface DatabaseViewConfig {
+  sorts: Array<{ columnId: string; direction: "asc" | "desc" }>;
+  filters: Array<{ columnId: string; operator: string; value: string }>;
+  hiddenColumns: string[];
+  columnOrder: string[];
+  columnWidths: Record<string, number>;
 }

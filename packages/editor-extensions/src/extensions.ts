@@ -28,6 +28,22 @@ import { common, createLowlight } from "lowlight";
 
 const lowlight = createLowlight(common);
 
+// Extend CodeBlockLowlight with a `collapsed` attribute for collapsible code blocks
+export const CollapsibleCodeBlock = CodeBlockLowlight.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      collapsed: {
+        default: false,
+        parseHTML: (element: HTMLElement) =>
+          element.getAttribute("data-collapsed") === "true",
+        renderHTML: (attributes: Record<string, unknown>) =>
+          attributes.collapsed ? { "data-collapsed": "true" } : {},
+      },
+    };
+  },
+});
+
 // --- Custom block extensions ---
 
 export type CalloutVariant = "info" | "warning" | "error" | "success";
@@ -187,6 +203,76 @@ export const HtmlEmbedExtension = Node.create({
     return {
       setHtmlEmbed:
         (attributes?: { htmlContent?: string }) =>
+        ({ commands }: { commands: any }) => {
+          return commands.insertContent({
+            type: this.name,
+            attrs: attributes,
+          });
+        },
+    } as any;
+  },
+});
+
+// --- Inline Database block ---
+
+export const InlineDatabaseExtension = Node.create({
+  name: "inlineDatabase",
+  group: "block",
+  atom: true,
+  selectable: true,
+  draggable: true,
+
+  addAttributes() {
+    return {
+      databaseId: {
+        default: null,
+        parseHTML: (element: HTMLElement) =>
+          element.getAttribute("data-database-id") || null,
+        renderHTML: (attributes: Record<string, unknown>) => ({
+          "data-database-id": attributes.databaseId,
+        }),
+      },
+      title: {
+        default: "Untitled Database",
+        parseHTML: (element: HTMLElement) =>
+          element.getAttribute("data-title") || "Untitled Database",
+        renderHTML: (attributes: Record<string, unknown>) => ({
+          "data-title": attributes.title,
+        }),
+      },
+      height: {
+        default: null,
+        parseHTML: (element: HTMLElement) => {
+          const h = element.getAttribute("data-height");
+          return h ? Number(h) : null;
+        },
+        renderHTML: (attributes: Record<string, unknown>) => {
+          if (!attributes.height) return {};
+          return { "data-height": attributes.height };
+        },
+      },
+    };
+  },
+
+  parseHTML() {
+    return [{ tag: 'div[data-type="inline-database"]' }];
+  },
+
+  renderHTML({ HTMLAttributes }: { HTMLAttributes: Record<string, unknown> }) {
+    return [
+      "div",
+      mergeAttributes(HTMLAttributes, {
+        "data-type": "inline-database",
+        class: "inline-database-block",
+      }),
+      ["div", { class: "inline-database-fallback" }, "Inline Database"],
+    ];
+  },
+
+  addCommands() {
+    return {
+      setInlineDatabase:
+        (attributes?: { databaseId?: string; title?: string }) =>
         ({ commands }: { commands: any }) => {
           return commands.insertContent({
             type: this.name,
@@ -389,13 +475,14 @@ export function getSchemaExtensions() {
     Link.configure({
       openOnClick: false,
     }),
-    CodeBlockLowlight.configure({
+    CollapsibleCodeBlock.configure({
       lowlight,
     }),
     Typography,
     CalloutExtension,
     ToggleExtension,
     HtmlEmbedExtension,
+    InlineDatabaseExtension,
     CommentMark,
     SuggestionAddMark,
     SuggestionDeleteMark,

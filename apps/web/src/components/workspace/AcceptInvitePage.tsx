@@ -38,7 +38,7 @@ export function AcceptInvitePage() {
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-400 text-sm">Loading...</div>
+        <div className="text-theme-secondary text-sm">Loading...</div>
       </div>
     );
   }
@@ -64,8 +64,8 @@ export function AcceptInvitePage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-2 border-gray-900 border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-sm text-gray-600">Accepting invitation...</p>
+          <div className="animate-spin w-8 h-8 border-2 border-theme rounded-full mx-auto mb-4" style={{ borderTopColor: "transparent" }} />
+          <p className="text-sm text-theme-secondary">Accepting invitation...</p>
         </div>
       </div>
     );
@@ -76,15 +76,16 @@ export function AcceptInvitePage() {
     if (result.error) {
       return (
         <div className="min-h-screen flex items-center justify-center">
-          <div className="max-w-sm w-full bg-white p-8 rounded-xl shadow-sm border text-center">
+          <div className="max-w-sm w-full bg-theme p-8 rounded-xl shadow-sm border border-theme text-center">
             <div className="text-4xl mb-4">:(</div>
             <h2 className="text-lg font-semibold mb-2">
               Couldn't accept invitation
             </h2>
-            <p className="text-sm text-gray-500 mb-4">{result.error}</p>
+            <p className="text-sm text-theme-secondary mb-4">{result.error}</p>
             <button
               onClick={() => navigate("/")}
-              className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm hover:bg-gray-800"
+              className="px-4 py-2 rounded-lg text-sm"
+              style={{ background: "var(--color-text-primary)", color: "var(--color-bg)" }}
             >
               Go to workspace
             </button>
@@ -96,11 +97,11 @@ export function AcceptInvitePage() {
     if (result.already_member) {
       return (
         <div className="min-h-screen flex items-center justify-center">
-          <div className="max-w-sm w-full bg-white p-8 rounded-xl shadow-sm border text-center">
+          <div className="max-w-sm w-full bg-theme p-8 rounded-xl shadow-sm border border-theme text-center">
             <h2 className="text-lg font-semibold mb-2">
               You're already a member!
             </h2>
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-theme-secondary mb-4">
               Redirecting to your workspace...
             </p>
           </div>
@@ -110,11 +111,11 @@ export function AcceptInvitePage() {
 
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="max-w-sm w-full bg-white p-8 rounded-xl shadow-sm border text-center">
+        <div className="max-w-sm w-full bg-theme p-8 rounded-xl shadow-sm border border-theme text-center">
           <h2 className="text-lg font-semibold mb-2">
             You've joined the workspace!
           </h2>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-theme-secondary mb-4">
             Redirecting...
           </p>
         </div>
@@ -124,7 +125,7 @@ export function AcceptInvitePage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="text-gray-400 text-sm">Processing invitation...</div>
+      <div className="text-theme-secondary text-sm">Processing invitation...</div>
     </div>
   );
 }

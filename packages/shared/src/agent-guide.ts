@@ -196,6 +196,11 @@ Second occurrence: { "text": "item", "mark": "bold", "occurrence": 2 }
 
 ## Tools
 
+### read_outline
+Read the document's heading structure as a nested outline. Useful for understanding document structure and navigating by section before making edits.
+GET ${mcpHost}/sessions/:id/outline
+Returns: { headings: [{ level, text, blockId, index }] }
+
 ### read_document
 Read the full document as ProseMirror JSON with stable IDs.
 GET ${mcpHost}/sessions/:id/document
@@ -294,6 +299,22 @@ POST ${mcpHost}/sessions/:id/pages/move
 - after_page_id — place after this page (omit or null for first position)
 - parent_id — new parent page ID (omit to keep at root level, or set to a page ID for nesting)
 
+## Page permissions
+
+### get_page_permissions
+Read the permission settings for a page, including public sharing status and access list.
+GET ${mcpHost}/sessions/:id/pages/:page_id/permissions
+Returns: { page_id, is_public, public_access_level, public_slug, is_restricted, access_list: [{ user_id, access_level }] }
+
+### update_page_permissions
+Update a page's sharing settings. Toggle public access, set a custom slug, or restrict access.
+PATCH ${mcpHost}/sessions/:id/pages/:page_id/permissions
+Supported fields (all optional):
+- is_public (boolean) — make the page publicly accessible via URL
+- public_access_level ("view" | "comment") — what anonymous visitors can do
+- public_slug (string | null) — custom vanity URL slug (e.g. "my-doc")
+- is_restricted (boolean) — limit access to specific workspace members
+
 ## Comments
 
 ### list_comments
@@ -373,7 +394,36 @@ POST ${mcpHost}/sessions/:id/suggestions/reject-all
 
 ## Editing workflow
 
-1. Call read_document first to understand the current structure, formatting, and block IDs.
+## Database tools
+
+If the connected page is a database (page_type = "database"), you can use these tools to read and write structured data:
+
+- **read_database_schema** — get column definitions (id, name, type, options)
+- **read_database_rows** — get all rows (with optional limit/offset for pagination)
+- **insert_database_row** — add a new row with column values (pass { column_id: value })
+- **update_database_cell** — edit a specific cell by row_id and column_id
+- **delete_database_row** — remove a row by its row_id
+- **add_database_column** — add a new column (name, type, options for select/multi_select)
+- **update_database_column** — rename or change a column's type/options
+
+Column types: text, number, select, multi_select, date, checkbox, person, url.
+
+Database workflow:
+1. Call read_database_schema to understand the columns.
+2. Call read_database_rows to see existing data.
+3. Use insert_database_row, update_database_cell, or delete_database_row to modify data.
+4. Use add_database_column or update_database_column to modify the schema.
+
+### Inline databases
+
+Documents can contain inline database blocks (embedded tables). To work with them:
+1. Call **list_inline_databases** to find all inline databases in the current document.
+2. Pass the returned database_id to any database tool to target that specific inline database.
+3. Without a database_id, tools operate on the standalone database page data.
+
+## Document editing workflow
+
+1. Call read_outline first to get an overview of the document's heading structure, then read_document for full content.
 2. Use block IDs for all edits — they are stable even when other collaborators add or remove blocks.
 3. For adding formatted content: use insert_block with ProseMirror JSON.
 4. For formatting existing text: use format_text_by_match — specify the text string you want to format rather than counting character offsets.

@@ -93,15 +93,15 @@ function SortablePageItem({
         onClick={() => !isEditing && onSelect()}
         className={`flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded text-left transition-colors ${
           isActive
-            ? "bg-gray-200 text-gray-900 font-medium"
-            : "text-gray-700 hover:bg-gray-200"
+            ? "bg-theme-surface text-theme-primary font-medium"
+            : "text-theme-primary hover:bg-(--color-surface)"
         }`}
       >
         {/* Drag handle */}
         {sortable && (
           <span
             {...listeners}
-            className="shrink-0 cursor-grab text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity hover:text-gray-600 active:cursor-grabbing"
+            className="shrink-0 cursor-grab text-theme-secondary opacity-0 group-hover:opacity-100 transition-opacity hover:text-theme-primary active:cursor-grabbing"
             onClick={(e) => e.stopPropagation()}
           >
             <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
@@ -122,7 +122,7 @@ function SortablePageItem({
             onChange={(e) => onEditChange(e.target.value)}
             onBlur={onEditBlur}
             onKeyDown={onEditKeyDown}
-            className="flex-1 bg-white border border-blue-400 rounded px-1 py-0 text-sm outline-none"
+            className="flex-1 bg-theme border border-blue-400 rounded px-1 py-0 text-sm outline-none"
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
@@ -137,7 +137,7 @@ function SortablePageItem({
             e.stopPropagation();
             onMenuToggle();
           }}
-          className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-gray-300 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"
+          className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-(--color-border) text-theme-secondary opacity-0 group-hover:opacity-100 transition-opacity"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
             <circle cx="12" cy="5" r="2" />
@@ -154,10 +154,10 @@ function SortablePageItem({
             className="fixed inset-0 z-10"
             onClick={() => { onMenuToggle(); setShowFolderMenu(false); }}
           />
-          <div className="absolute right-0 top-full z-20 mt-1 w-44 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
+          <div className="absolute right-0 top-full z-20 mt-1 w-44 bg-theme rounded-lg shadow-lg border border-theme py-1">
             <button
               onClick={onStartRename}
-              className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
+              className="w-full text-left px-3 py-1.5 text-sm text-theme-primary hover:bg-(--color-surface)"
             >
               Rename
             </button>
@@ -167,7 +167,7 @@ function SortablePageItem({
                   onToggleFavorite();
                   onMenuToggle();
                 }}
-                className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
+                className="w-full text-left px-3 py-1.5 text-sm text-theme-primary hover:bg-(--color-surface)"
               >
                 {page.is_favorite ? "Remove from favorites" : "Add to favorites"}
               </button>
@@ -176,7 +176,7 @@ function SortablePageItem({
               <div className="relative">
                 <button
                   onClick={() => setShowFolderMenu(!showFolderMenu)}
-                  className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-between"
+                  className="w-full text-left px-3 py-1.5 text-sm text-theme-primary hover:bg-(--color-surface) flex items-center justify-between"
                 >
                   Move to folder
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -184,7 +184,7 @@ function SortablePageItem({
                   </svg>
                 </button>
                 {showFolderMenu && (
-                  <div className="absolute left-full top-0 ml-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
+                  <div className="absolute left-full top-0 ml-1 w-40 bg-theme rounded-lg shadow-lg border border-theme py-1">
                     {page.folder_id && (
                       <button
                         onClick={() => {
@@ -192,7 +192,7 @@ function SortablePageItem({
                           onMenuToggle();
                           setShowFolderMenu(false);
                         }}
-                        className="w-full text-left px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100 italic"
+                        className="w-full text-left px-3 py-1.5 text-sm text-theme-secondary hover:bg-(--color-surface) italic"
                       >
                         No folder
                       </button>
@@ -207,7 +207,7 @@ function SortablePageItem({
                             onMenuToggle();
                             setShowFolderMenu(false);
                           }}
-                          className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                          className="w-full text-left px-3 py-1.5 text-sm text-theme-primary hover:bg-(--color-surface) flex items-center gap-2"
                         >
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={f.color || "#6b7280"} strokeWidth="2">
                             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
@@ -225,11 +225,11 @@ function SortablePageItem({
                 navigator.clipboard.writeText(url);
                 onMenuToggle();
               }}
-              className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
+              className="w-full text-left px-3 py-1.5 text-sm text-theme-primary hover:bg-(--color-surface)"
             >
               Copy link
             </button>
-            <div className="border-t border-gray-100 my-1" />
+            <div className="border-t border-theme my-1" />
             <button
               onClick={() => {
                 onMenuToggle();

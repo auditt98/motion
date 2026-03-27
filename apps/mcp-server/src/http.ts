@@ -153,6 +153,7 @@ const sessions = new Map<string, Session>();
  *   POST   /sessions                      — Connect to a document
  *   DELETE  /sessions/:id                  — Disconnect
  *   GET    /sessions/:id/document          — Read full document
+ *   GET    /sessions/:id/outline           — Read heading outline
  *   GET    /sessions/:id/blocks/:index     — Read a single block
  *   POST   /sessions/:id/blocks            — Insert a block
  *   PUT    /sessions/:id/blocks/:index     — Update a block
@@ -274,6 +275,7 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
       tools: [
         // Document editing
         "GET    /sessions/:id/document          — Read full document as PM JSON",
+        "GET    /sessions/:id/outline           — Read heading structure as outline",
         "GET    /sessions/:id/blocks/:block_id  — Read block as PM JSON",
         "POST   /sessions/:id/blocks            — Insert block (PM JSON or plain text)",
         "PUT    /sessions/:id/blocks/:block_id  — Replace block (PM JSON or plain text)",
@@ -289,6 +291,9 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
         "DELETE /sessions/:id/pages/:page_id    — Soft-delete page",
         "POST   /sessions/:id/pages/:page_id/restore — Restore from trash",
         "POST   /sessions/:id/pages/move        — Move page",
+        // Page permissions
+        "GET    /sessions/:id/pages/:page_id/permissions — Read page permissions",
+        "PATCH  /sessions/:id/pages/:page_id/permissions — Update page permissions",
         // Comments
         "GET    /sessions/:id/comments          — List comment threads",
         "POST   /sessions/:id/comments          — Create comment thread",
@@ -382,6 +387,16 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
     const blocks = p.readDocumentJSON();
     p.updateAwareness("idle", "");
     json(res, 200, { blocks });
+    return;
+  }
+
+  // GET /sessions/:id/outline — read document heading structure
+  if (subpath === "/outline" && method === "GET") {
+    const p = requirePeer(); if (!p) return;
+    p.updateAwareness("thinking", "Reading outline...");
+    const headings = p.readOutline();
+    p.updateAwareness("idle", "");
+    json(res, 200, { headings });
     return;
   }
 
@@ -609,10 +624,11 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
     }
 
     const siblingPositions = siblings.map((p) => p.position);
-    let { position: newPosition, needsRenumber } = computeInsertPosition(
+    const { position, needsRenumber } = computeInsertPosition(
       siblingPositions,
       targetIndex,
     );
+    let newPosition = position;
 
     if (needsRenumber) {
       const fresh = renumberPositions(siblings.length + 1);
@@ -699,6 +715,39 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
     if (pageSubpath === "/restore" && method === "POST") {
       const ok = await sbClient.restorePage(pageId, session.workspaceId);
       json(res, ok ? 200 : 500, ok ? { restored: true, page_id: pageId } : { error: "Failed to restore page" });
+      return;
+    }
+
+    // GET /sessions/:id/pages/:page_id/permissions — read page permissions
+    if (pageSubpath === "/permissions" && method === "GET") {
+      const perms = await sbClient.getPagePermissions(pageId);
+      const accessList = perms ? await sbClient.getPageAccessList(pageId) : [];
+      json(res, 200, {
+        page_id: pageId,
+        is_public: perms?.is_public ?? false,
+        public_access_level: perms?.public_access_level ?? "view",
+        public_slug: perms?.public_slug ?? null,
+        is_restricted: perms?.is_restricted ?? false,
+        access_list: accessList,
+      });
+      return;
+    }
+
+    // PATCH /sessions/:id/pages/:page_id/permissions — update page permissions
+    if (pageSubpath === "/permissions" && method === "PATCH") {
+      const body = await parseBody(req);
+      const updates: Record<string, unknown> = {};
+      if ("is_public" in body) updates.is_public = body.is_public;
+      if ("public_access_level" in body) updates.public_access_level = body.public_access_level;
+      if ("public_slug" in body) updates.public_slug = body.public_slug || null;
+      if ("is_restricted" in body) updates.is_restricted = body.is_restricted;
+
+      const result = await sbClient.upsertPagePermissions(pageId, session.workspaceId, updates);
+      if (!result) {
+        json(res, 500, { error: "Failed to update page permissions" });
+        return;
+      }
+      json(res, 200, result);
       return;
     }
   }
@@ -902,6 +951,119 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
     if (suggestionSubpath === "/reject" && method === "POST") {
       const ok = p.rejectSuggestion(suggestionId);
       json(res, ok ? 200 : 404, ok ? { rejected: true } : { error: "Suggestion not found" });
+      return;
+    }
+  }
+
+  // --- Database routes ---
+  // All database routes accept optional ?database_id= for inline databases
+
+  // Helper to extract database_id from query params
+  function getDbId(): string | undefined {
+    const urlObj = new URL(req.url!, `http://localhost`);
+    return urlObj.searchParams.get("database_id") || undefined;
+  }
+
+  // GET /sessions/:id/inline-databases — list inline database blocks
+  if (subpath === "/inline-databases" && method === "GET") {
+    const p = requirePeer(); if (!p) return;
+    json(res, 200, { databases: p.listInlineDatabases() });
+    return;
+  }
+
+  // GET /sessions/:id/database/schema
+  if (subpath === "/database/schema" && method === "GET") {
+    const p = requirePeer(); if (!p) return;
+    json(res, 200, p.readDatabaseSchema(getDbId()));
+    return;
+  }
+
+  // GET /sessions/:id/database/rows
+  if (subpath === "/database/rows" && method === "GET") {
+    const p = requirePeer(); if (!p) return;
+    const urlObj = new URL(req.url!, `http://localhost`);
+    const limit = urlObj.searchParams.get("limit") ? Number(urlObj.searchParams.get("limit")) : undefined;
+    const offset = urlObj.searchParams.get("offset") ? Number(urlObj.searchParams.get("offset")) : undefined;
+    const rows = p.readDatabaseRows({ limit, offset, databaseId: getDbId() });
+    json(res, 200, { rows });
+    return;
+  }
+
+  // POST /sessions/:id/database/rows
+  if (subpath === "/database/rows" && method === "POST") {
+    const p = requirePeer(); if (!p) return;
+    const body = await parseBody(req);
+    const values = body.values as Record<string, unknown> ?? {};
+    const dbId = (body.database_id as string) || getDbId();
+    p.updateAwareness("writing", "Inserting database row");
+    const rowId = p.insertDatabaseRow(values, dbId);
+    p.updateAwareness("idle", "");
+    json(res, 201, { id: rowId });
+    return;
+  }
+
+  // Database row routes: /database/rows/:row_id
+  const dbRowMatch = subpath.match(/^\/database\/rows\/([^/]+)$/);
+  if (dbRowMatch) {
+    const p = requirePeer(); if (!p) return;
+    const rowId = dbRowMatch[1];
+    const dbId = getDbId();
+
+    if (method === "PATCH") {
+      const body = await parseBody(req);
+      const cells = body.cells as Record<string, unknown> ?? {};
+      p.updateAwareness("writing", "Updating database cell");
+      let updated = false;
+      for (const [colId, value] of Object.entries(cells)) {
+        if (p.updateDatabaseCell(rowId, colId, value, dbId)) updated = true;
+      }
+      p.updateAwareness("idle", "");
+      json(res, updated ? 200 : 404, updated ? { updated: true } : { error: "Row not found" });
+      return;
+    }
+
+    if (method === "DELETE") {
+      p.updateAwareness("writing", "Deleting database row");
+      const deleted = p.deleteDatabaseRow(rowId, dbId);
+      p.updateAwareness("idle", "");
+      json(res, deleted ? 200 : 404, deleted ? { deleted: true } : { error: "Row not found" });
+      return;
+    }
+  }
+
+  // POST /sessions/:id/database/columns
+  if (subpath === "/database/columns" && method === "POST") {
+    const p = requirePeer(); if (!p) return;
+    const body = await parseBody(req);
+    const name = String(body.name ?? "Column");
+    const type = String(body.type ?? "text");
+    const options = Array.isArray(body.options) ? body.options.map(String) : undefined;
+    const dbId = (body.database_id as string) || getDbId();
+    const colId = p.addDatabaseColumn(name, type, options, dbId);
+    json(res, 201, { id: colId });
+    return;
+  }
+
+  // Database column routes: /database/columns/:col_id
+  const dbColMatch = subpath.match(/^\/database\/columns\/([^/]+)$/);
+  if (dbColMatch) {
+    const p = requirePeer(); if (!p) return;
+    const colId = dbColMatch[1];
+    const dbId = getDbId();
+
+    if (method === "PATCH") {
+      const body = await parseBody(req);
+      const updates: { name?: string; type?: string; options?: string[] } = {};
+      if (body.name) updates.name = String(body.name);
+      if (body.type) updates.type = String(body.type);
+      if (Array.isArray(body.options)) updates.options = body.options.map(String);
+      const ok = p.updateDatabaseColumn(colId, updates, dbId);
+      json(res, ok ? 200 : 404, ok ? { updated: true } : { error: "Column not found" });
+      return;
+    }
+
+    if (method === "DELETE") {
+      json(res, 501, { error: "Column deletion via API not yet supported" });
       return;
     }
   }

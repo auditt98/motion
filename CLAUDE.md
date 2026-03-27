@@ -125,6 +125,16 @@ The agent instruction text (copied to clipboard via "Copy agent instructions" bu
 
 Both the web app's ShareButton and `docs/agent-document-guide.md` derive from this. When updating the agent guide, update only `agent-guide.ts` — the docs file is auto-generated from it.
 
+## New feature checklist
+
+Every new feature that adds or changes agent-facing capabilities **must** update all three surfaces:
+
+1. **HTTP API** (`apps/mcp-server/src/http.ts`) — add/update the REST endpoint, update the route listing in the help output and JSDoc
+2. **Agent guide** (`packages/shared/src/agent-guide.ts`) — add/update the tool documentation in `buildAgentInstructions()` so the "Copy agent instructions" button includes it
+3. **Status tracker** (`docs/improvements-v2/Status.md`) — mark the feature status
+
+Forgetting any of these means agents won't know the capability exists or users can't discover it.
+
 ## Architecture notes
 
 - Documents are Yjs `Y.Doc` instances hosted in PartyKit rooms (one room per document)

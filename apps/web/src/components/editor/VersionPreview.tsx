@@ -204,7 +204,7 @@ export function VersionPreview({
           ) : editor ? (
             <EditorContent editor={editor} />
           ) : (
-            <div className="animate-pulse h-32 bg-gray-50 rounded" />
+            <div className="animate-pulse h-32 bg-theme-surface rounded" />
           )}
         </div>
       </div>

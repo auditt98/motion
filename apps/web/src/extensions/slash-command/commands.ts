@@ -154,6 +154,20 @@ export const slashCommands: SlashCommand[] = [
     },
   },
   {
+    title: "Database",
+    description: "Insert an inline database",
+    icon: "\u2637",
+    group: "Blocks",
+    aliases: ["database", "db", "dataview", "inline-database"],
+    action: (editor, range) => {
+      editor.chain().focus().deleteRange(range).run();
+      (editor.chain().focus() as any).setInlineDatabase({
+        databaseId: crypto.randomUUID(),
+        title: "Untitled Database",
+      }).run();
+    },
+  },
+  {
     title: "Divider",
     description: "Horizontal line",
     icon: "\u2014",

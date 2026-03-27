@@ -10,6 +10,8 @@ import { EditorToolbar } from "./EditorToolbar";
 import { getSchemaExtensions } from "@motion/editor-extensions";
 import { SlashCommandExtension } from "@/extensions/slash-command/slash-command";
 import { HtmlEmbedNodeView } from "@/extensions/blocks/html-embed";
+import { InlineDatabaseNodeView } from "@/extensions/blocks/inline-database";
+import { CodeBlockNodeView } from "@/extensions/blocks/code-block";
 import { SuggestionModeExtension } from "./SuggestionModePlugin";
 
 // Schema extensions shared with the MCP server — single source of truth
@@ -18,8 +20,10 @@ const schemaExtensions = getSchemaExtensions();
 interface EditorProps {
   ydoc: Y.Doc;
   provider: YPartyKitProvider;
+  pageId?: string;
   userName?: string;
   userId?: string;
+  editable?: boolean;
   onEditorReady?: (editor: TipTapEditor) => void;
   onCommentClick?: (threadId: string) => void;
   onImageUpload?: (file: File) => Promise<string | null>;
@@ -33,8 +37,10 @@ interface EditorProps {
 export function Editor({
   ydoc,
   provider,
+  pageId,
   userName,
   userId,
+  editable = true,
   onEditorReady,
   onCommentClick,
   onImageUpload,
@@ -106,6 +112,7 @@ export function Editor({
 
   const editor = useEditor(
     {
+      editable,
       extensions: [
         // Shared schema extensions (same as MCP server)
         ...schemaExtensions,
@@ -150,6 +157,8 @@ export function Editor({
           },
         }),
         HtmlEmbedNodeView,
+        InlineDatabaseNodeView.configure({ pageId: pageId ?? "" }),
+        CodeBlockNodeView,
         SlashCommandExtension,
         SuggestionModeExtension.configure({
           authorId: userId ?? "",
@@ -212,20 +221,22 @@ export function Editor({
   );
 
   if (!editor) {
-    return <div className="animate-pulse h-32 bg-gray-50 rounded" />;
+    return <div className="animate-pulse h-32 bg-theme-surface rounded" />;
   }
 
   return (
     <div>
-      <EditorToolbar
-        editor={editor}
-        onImageUpload={onImageUpload}
-        suggestionMode={suggestionMode}
-        onToggleSuggestionMode={onToggleSuggestionMode}
-        suggestionCount={suggestionCount}
-        onAcceptAll={onAcceptAll}
-        onRejectAll={onRejectAll}
-      />
+      {editable && (
+        <EditorToolbar
+          editor={editor}
+          onImageUpload={onImageUpload}
+          suggestionMode={suggestionMode}
+          onToggleSuggestionMode={onToggleSuggestionMode}
+          suggestionCount={suggestionCount}
+          onAcceptAll={onAcceptAll}
+          onRejectAll={onRejectAll}
+        />
+      )}
       <EditorContent editor={editor} />
     </div>
   );

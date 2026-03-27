@@ -26,6 +26,7 @@ export function registerAllTools(server: McpServer, ctx: ToolContext): void {
   registerExportTools(server, ctx);
   registerSuggestionTools(server, ctx);
   registerSearchTools(server, ctx);
+  registerDatabaseTools(server, ctx);
 }
 
 /**
@@ -40,6 +41,25 @@ function registerDocumentTools(server: McpServer, ctx: ToolContext): void {
   // Dynamic descriptions based on actual schema
   const availableMarks = peer.getAvailableMarks().join(", ");
   const availableBlocks = peer.getAvailableBlockTypes().join(", ");
+
+  server.tool(
+    "read_outline",
+    "Read the document's heading structure as a nested outline. Returns an array of headings with their level (1-3), text content, stable block ID, and index. Useful for understanding document structure and navigating by section before making edits.",
+    {},
+    async () => {
+      peer.updateAwareness("thinking", "Reading outline...");
+      const headings = peer.readOutline();
+      peer.updateAwareness("idle", "");
+      if (headings.length === 0) {
+        return {
+          content: [{ type: "text" as const, text: "No headings found in the document." }],
+        };
+      }
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(headings, null, 2) }],
+      };
+    },
+  );
 
   server.tool(
     "read_document",
@@ -590,7 +610,8 @@ function registerPageTools(server: McpServer, ctx: ToolContext): void {
       }
 
       const siblingPositions = siblings.map((p) => p.position);
-      let { position: newPosition, needsRenumber } = computeInsertPosition(siblingPositions, targetIndex);
+      const { position, needsRenumber } = computeInsertPosition(siblingPositions, targetIndex);
+      let newPosition = position;
 
       if (needsRenumber) {
         const fresh = renumberPositions(siblings.length + 1);
@@ -1089,6 +1110,166 @@ function registerSearchTools(server: McpServer, ctx: ToolContext): void {
           type: "text" as const,
           text: `Found ${results.length} page(s) matching "${query}":\n\n${lines.join("\n\n")}`,
         }],
+      };
+    },
+  );
+}
+
+/**
+ * Register database tools for reading and writing structured data.
+ * These tools operate on database pages (page_type = 'database') that store
+ * schema and rows in Yjs shared types instead of ProseMirror content.
+ */
+function registerDatabaseTools(server: McpServer, ctx: ToolContext): void {
+  const DB_ID_DESC = "For inline databases, pass the database_id from list_inline_databases. Omit for standalone database pages.";
+
+  server.tool(
+    "read_database_schema",
+    "Read the database column schema. Returns column definitions including id, name, type, width, and options (for select/multi_select).",
+    {
+      database_id: z.string().optional().describe(DB_ID_DESC),
+    },
+    async ({ database_id }) => {
+      const peer = ctx.peerRef.current;
+      peer.updateAwareness("thinking", "Reading database schema...");
+      const schema = peer.readDatabaseSchema(database_id);
+      peer.updateAwareness("idle", "");
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(schema, null, 2) }],
+      };
+    },
+  );
+
+  server.tool(
+    "read_database_rows",
+    "Read rows from a database. Returns an array of row objects with column values. Supports optional limit and offset for pagination.",
+    {
+      limit: z.number().optional().describe("Maximum number of rows to return"),
+      offset: z.number().optional().describe("Number of rows to skip"),
+      database_id: z.string().optional().describe(DB_ID_DESC),
+    },
+    async ({ limit, offset, database_id }) => {
+      const peer = ctx.peerRef.current;
+      peer.updateAwareness("thinking", "Reading database rows...");
+      const rows = peer.readDatabaseRows({ limit, offset, databaseId: database_id });
+      peer.updateAwareness("idle", "");
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(rows, null, 2) }],
+      };
+    },
+  );
+
+  server.tool(
+    "insert_database_row",
+    "Insert a new row into the database. Pass column values as a key-value object where keys are column IDs. Returns the new row's ID.",
+    {
+      values: z.record(z.unknown()).describe("Column values as { column_id: value }"),
+      database_id: z.string().optional().describe(DB_ID_DESC),
+    },
+    async ({ values, database_id }) => {
+      const peer = ctx.peerRef.current;
+      peer.updateAwareness("writing", "Inserting database row...");
+      const rowId = peer.insertDatabaseRow(values, database_id);
+      peer.updateAwareness("idle", "");
+      return {
+        content: [{ type: "text" as const, text: `Row inserted with id: ${rowId}` }],
+      };
+    },
+  );
+
+  server.tool(
+    "update_database_cell",
+    "Update a specific cell in a database row. Identifies the cell by row ID and column ID.",
+    {
+      row_id: z.string().describe("The row's ID"),
+      column_id: z.string().describe("The column's ID"),
+      value: z.unknown().describe("The new cell value"),
+      database_id: z.string().optional().describe(DB_ID_DESC),
+    },
+    async ({ row_id, column_id, value, database_id }) => {
+      const peer = ctx.peerRef.current;
+      peer.updateAwareness("writing", "Updating database cell...");
+      const ok = peer.updateDatabaseCell(row_id, column_id, value, database_id);
+      peer.updateAwareness("idle", "");
+      return {
+        content: [{ type: "text" as const, text: ok ? "Cell updated." : "Row not found." }],
+      };
+    },
+  );
+
+  server.tool(
+    "delete_database_row",
+    "Delete a row from the database by its row ID.",
+    {
+      row_id: z.string().describe("The row's ID to delete"),
+      database_id: z.string().optional().describe(DB_ID_DESC),
+    },
+    async ({ row_id, database_id }) => {
+      const peer = ctx.peerRef.current;
+      peer.updateAwareness("writing", "Deleting database row...");
+      const ok = peer.deleteDatabaseRow(row_id, database_id);
+      peer.updateAwareness("idle", "");
+      return {
+        content: [{ type: "text" as const, text: ok ? "Row deleted." : "Row not found." }],
+      };
+    },
+  );
+
+  server.tool(
+    "add_database_column",
+    "Add a new column to the database schema. Returns the new column's ID.",
+    {
+      name: z.string().describe("Column display name"),
+      type: z.enum(["text", "number", "select", "multi_select", "date", "checkbox", "person", "url"]).describe("Column data type"),
+      options: z.array(z.string()).optional().describe("Options for select/multi_select columns"),
+      database_id: z.string().optional().describe(DB_ID_DESC),
+    },
+    async ({ name, type, options, database_id }) => {
+      const peer = ctx.peerRef.current;
+      const colId = peer.addDatabaseColumn(name, type, options, database_id);
+      return {
+        content: [{ type: "text" as const, text: `Column added with id: ${colId}` }],
+      };
+    },
+  );
+
+  server.tool(
+    "update_database_column",
+    "Update a database column's name, type, or options.",
+    {
+      column_id: z.string().describe("The column's ID"),
+      name: z.string().optional().describe("New column name"),
+      type: z.enum(["text", "number", "select", "multi_select", "date", "checkbox", "person", "url"]).optional().describe("New column type"),
+      options: z.array(z.string()).optional().describe("New options for select/multi_select"),
+      database_id: z.string().optional().describe(DB_ID_DESC),
+    },
+    async ({ column_id, name, type, options, database_id }) => {
+      const peer = ctx.peerRef.current;
+      const updates: { name?: string; type?: string; options?: string[] } = {};
+      if (name) updates.name = name;
+      if (type) updates.type = type;
+      if (options) updates.options = options;
+      const ok = peer.updateDatabaseColumn(column_id, updates, database_id);
+      return {
+        content: [{ type: "text" as const, text: ok ? "Column updated." : "Column not found." }],
+      };
+    },
+  );
+
+  server.tool(
+    "list_inline_databases",
+    "List all inline database blocks embedded in the current document. Returns block IDs, database IDs, and titles. Use the database_id with other database tools to operate on a specific inline database.",
+    {},
+    async () => {
+      const peer = ctx.peerRef.current;
+      const databases = peer.listInlineDatabases();
+      if (databases.length === 0) {
+        return {
+          content: [{ type: "text" as const, text: "No inline databases found in this document." }],
+        };
+      }
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(databases, null, 2) }],
       };
     },
   );

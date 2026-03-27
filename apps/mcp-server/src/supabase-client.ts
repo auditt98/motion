@@ -382,6 +382,55 @@ export class SupabaseClient {
     return (await res.json()) as SearchResultRow[];
   }
 
+  // --- Page permissions ---
+  // Note: Workspace-level tokens (agent_token, invite_token) bypass page
+  // restrictions per the additive model. These methods are for agents to
+  // read/manage permissions, not to gate their own access.
+
+  async getPagePermissions(pageId: string): Promise<PagePermissionsRow | null> {
+    const res = await fetch(
+      `${this.config.url}/rest/v1/page_permissions?page_id=eq.${enc(pageId)}&select=*&limit=1`,
+      { headers: this.headers },
+    );
+    if (!res.ok) return null;
+    const rows = (await res.json()) as PagePermissionsRow[];
+    return rows[0] ?? null;
+  }
+
+  async getPageAccessList(pageId: string): Promise<PageAccessListRow[]> {
+    const res = await fetch(
+      `${this.config.url}/rest/v1/page_access_list?page_id=eq.${enc(pageId)}&select=*&order=created_at.asc`,
+      { headers: this.headers },
+    );
+    if (!res.ok) return [];
+    return (await res.json()) as PageAccessListRow[];
+  }
+
+  async upsertPagePermissions(
+    pageId: string,
+    workspaceId: string,
+    updates: Partial<Omit<PagePermissionsRow, "id" | "page_id" | "workspace_id" | "created_at" | "updated_at">>,
+  ): Promise<PagePermissionsRow | null> {
+    const res = await fetch(
+      `${this.config.url}/rest/v1/page_permissions`,
+      {
+        method: "POST",
+        headers: {
+          ...this.headers,
+          Prefer: "return=representation,resolution=merge-duplicates",
+        },
+        body: JSON.stringify({
+          page_id: pageId,
+          workspace_id: workspaceId,
+          ...updates,
+        }),
+      },
+    );
+    if (!res.ok) return null;
+    const rows = (await res.json()) as PagePermissionsRow[];
+    return rows[0] ?? null;
+  }
+
   // --- Versions ---
 
   async listVersions(pageId: string): Promise<VersionRow[]> {
@@ -455,6 +504,27 @@ export interface SearchResultRow {
   fts_rank: number;
   semantic_score: number;
   combined_score: number;
+}
+
+export interface PagePermissionsRow {
+  id: string;
+  page_id: string;
+  workspace_id: string;
+  is_public: boolean;
+  public_access_level: string;
+  public_slug: string | null;
+  is_restricted: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PageAccessListRow {
+  id: string;
+  page_id: string;
+  user_id: string;
+  access_level: string;
+  granted_by: string | null;
+  created_at: string;
 }
 
 export interface VersionRow {

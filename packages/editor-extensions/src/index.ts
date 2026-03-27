@@ -3,6 +3,8 @@ export {
   CalloutExtension,
   ToggleExtension,
   HtmlEmbedExtension,
+  InlineDatabaseExtension,
+  CollapsibleCodeBlock,
   CommentMark,
   SuggestionAddMark,
   SuggestionDeleteMark,

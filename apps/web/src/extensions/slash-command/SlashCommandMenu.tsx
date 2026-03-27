@@ -54,7 +54,7 @@ export const SlashCommandMenu = forwardRef<
 
   if (items.length === 0) {
     return (
-      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-sm text-gray-500">
+      <div className="bg-theme border border-theme rounded-lg shadow-lg p-3 text-sm text-theme-secondary">
         No results
       </div>
     );
@@ -73,10 +73,10 @@ export const SlashCommandMenu = forwardRef<
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-lg py-1 max-h-80 overflow-y-auto w-56">
+    <div className="slash-command-menu bg-theme border border-theme rounded-lg shadow-lg py-1 max-h-80 overflow-y-auto w-56">
       {Object.entries(groups).map(([groupName, group]) => (
         <div key={groupName}>
-          <div className="px-3 py-1.5 text-xs font-medium text-gray-400 uppercase tracking-wide">
+          <div className="px-3 py-1.5 text-xs font-medium text-theme-secondary uppercase tracking-wide">
             {groupName}
           </div>
           {group.items.map((item, i) => {
@@ -86,8 +86,8 @@ export const SlashCommandMenu = forwardRef<
                 key={item.title}
                 className={`w-full text-left px-3 py-1.5 flex items-center gap-3 text-sm transition-colors ${
                   flatIndex === selectedIndex
-                    ? "bg-gray-100 text-gray-900"
-                    : "text-gray-700 hover:bg-gray-50"
+                    ? "bg-theme-surface text-theme-primary"
+                    : "text-theme-primary hover:bg-(--color-surface)"
                 }`}
                 onClick={() => selectItem(flatIndex)}
                 onMouseEnter={() => setSelectedIndex(flatIndex)}
@@ -97,7 +97,7 @@ export const SlashCommandMenu = forwardRef<
                 </span>
                 <div className="min-w-0">
                   <div className="font-medium truncate">{item.title}</div>
-                  <div className="text-xs text-gray-400 truncate">
+                  <div className="text-xs text-theme-secondary truncate">
                     {item.description}
                   </div>
                 </div>

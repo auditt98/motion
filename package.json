@@ -5,6 +5,7 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "lint": "turbo lint",
+    "lint:fix": "eslint . --fix",
     "typecheck": "turbo typecheck",
     "dev:web": "turbo dev --filter=@motion/web",
     "dev:party": "turbo dev --filter=@motion/party",
@@ -12,9 +13,14 @@
     "dev:mcp": "turbo dev --filter=@motion/mcp-server"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "eslint": "^9.39.4",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
     "tsx": "^4.21.0",
     "turbo": "^2",
-    "typescript": "^5.7"
+    "typescript": "^5.7",
+    "typescript-eslint": "^8.57.2"
   },
   "packageManager": "pnpm@10.14.0",
   "engines": {

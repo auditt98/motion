@@ -156,6 +156,24 @@ export class YjsPeer {
   }
 
   /**
+   * Read the document heading structure as an outline.
+   */
+  readOutline(): Array<{ level: number; text: string; blockId: string; index: number }> {
+    const fragment = this.getFragment();
+    const headings: Array<{ level: number; text: string; blockId: string; index: number }> = [];
+    for (let i = 0; i < fragment.length; i++) {
+      const child = fragment.get(i);
+      if (child instanceof Y.XmlElement && child.nodeName === "heading") {
+        const level = Number(child.getAttribute("level")) || 1;
+        const text = xmlElementToText(child);
+        const blockId = this.ensureBlockId(child);
+        headings.push({ level, text, blockId, index: i });
+      }
+    }
+    return headings;
+  }
+
+  /**
    * Read the full document as structured text with block IDs.
    */
   readDocument(): string {
@@ -815,6 +833,122 @@ export class YjsPeer {
       content: blocks.map((b) => b.json as unknown as PMNode),
     };
     return serializePMNodeToHTML(doc);
+  }
+
+  // --- Database methods ---
+
+  private getDbMeta(databaseId?: string): Y.Map<unknown> {
+    const key = databaseId ? `db_meta_${databaseId}` : "database_meta";
+    return this.ydoc.getMap(key);
+  }
+
+  private getDbRows(databaseId?: string): Y.Array<unknown> {
+    const key = databaseId ? `db_rows_${databaseId}` : "database_rows";
+    return this.ydoc.getArray(key);
+  }
+
+  private readDbColumns(databaseId?: string): Array<{ id: string; name: string; type: string; width: number; options?: string[] }> {
+    const raw = this.getDbMeta(databaseId).get("columns");
+    if (Array.isArray(raw)) return raw;
+    return [];
+  }
+
+  readDatabaseSchema(databaseId?: string): { columns: Array<{ id: string; name: string; type: string; width: number; options?: string[] }> } {
+    return { columns: this.readDbColumns(databaseId) };
+  }
+
+  readDatabaseRows(options?: { limit?: number; offset?: number; databaseId?: string }): Array<Record<string, unknown>> {
+    const rows: Array<Record<string, unknown>> = [];
+    const dbRows = this.getDbRows(options?.databaseId);
+
+    dbRows.forEach((item) => {
+      if (item instanceof Y.Map) {
+        const obj: Record<string, unknown> = {};
+        item.forEach((v, k) => { obj[k] = v; });
+        rows.push(obj);
+      }
+    });
+
+    const start = options?.offset ?? 0;
+    const end = options?.limit ? start + options.limit : rows.length;
+    return rows.slice(start, end);
+  }
+
+  insertDatabaseRow(values: Record<string, unknown>, databaseId?: string): string {
+    const dbRows = this.getDbRows(databaseId);
+    const rowMap = new Y.Map<unknown>();
+    const rowId = randomUUID();
+
+    this.ydoc.transact(() => {
+      rowMap.set("id", rowId);
+      for (const [key, val] of Object.entries(values)) {
+        rowMap.set(key, val);
+      }
+      dbRows.push([rowMap]);
+    });
+
+    return rowId;
+  }
+
+  updateDatabaseCell(rowId: string, columnId: string, value: unknown, databaseId?: string): boolean {
+    const dbRows = this.getDbRows(databaseId);
+    for (let i = 0; i < dbRows.length; i++) {
+      const item = dbRows.get(i);
+      if (item instanceof Y.Map && item.get("id") === rowId) {
+        item.set(columnId, value);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  deleteDatabaseRow(rowId: string, databaseId?: string): boolean {
+    const dbRows = this.getDbRows(databaseId);
+    for (let i = 0; i < dbRows.length; i++) {
+      const item = dbRows.get(i);
+      if (item instanceof Y.Map && item.get("id") === rowId) {
+        dbRows.delete(i, 1);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  addDatabaseColumn(name: string, type: string, options?: string[], databaseId?: string): string {
+    const dbMeta = this.getDbMeta(databaseId);
+    const cols = this.readDbColumns(databaseId);
+    const colId = randomUUID();
+    const newCol = { id: colId, name, type, width: 200, ...(options ? { options } : {}) };
+    dbMeta.set("columns", [...cols, newCol]);
+    return colId;
+  }
+
+  updateDatabaseColumn(columnId: string, updates: { name?: string; type?: string; options?: string[] }, databaseId?: string): boolean {
+    const dbMeta = this.getDbMeta(databaseId);
+    const cols = this.readDbColumns(databaseId);
+    const idx = cols.findIndex((c) => c.id === columnId);
+    if (idx === -1) return false;
+    cols[idx] = { ...cols[idx], ...updates };
+    dbMeta.set("columns", cols);
+    return true;
+  }
+
+  /** List all inline database blocks in the current document. */
+  listInlineDatabases(): Array<{ blockId: string; databaseId: string; title: string }> {
+    const fragment = this.getFragment();
+    const results: Array<{ blockId: string; databaseId: string; title: string }> = [];
+    for (let i = 0; i < fragment.length; i++) {
+      const child = fragment.get(i);
+      if (child instanceof Y.XmlElement && child.nodeName === "inlineDatabase") {
+        const blockId = this.ensureBlockId(child);
+        const databaseId = child.getAttribute("databaseId") as string | undefined;
+        const title = (child.getAttribute("title") as string) || "Untitled Database";
+        if (databaseId) {
+          results.push({ blockId, databaseId, title });
+        }
+      }
+    }
+    return results;
   }
 
   disconnect(): void {

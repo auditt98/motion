@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import type { PageItem, FolderItem } from "@/hooks/useWorkspace";
 import { PageIcon } from "@/components/shared/PageIcon";
@@ -48,6 +48,52 @@ interface MotionSidebarContentProps {
   onRenameFolder: (id: string, name: string) => void;
   onDeleteFolder: (id: string) => void;
   onNavigate: (path: string) => void;
+  onImport?: () => void;
+}
+
+// --- Positioned context menu (measures itself to avoid viewport overflow) ---
+
+function PositionedMenu({
+  menuBtnRef,
+  onClose,
+  items,
+}: {
+  menuBtnRef: React.RefObject<HTMLButtonElement | null>;
+  onClose: () => void;
+  items: ActionMenuItem[];
+}) {
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [style, setStyle] = useState<React.CSSProperties>({ visibility: "hidden", position: "fixed", zIndex: 101 });
+
+  useLayoutEffect(() => {
+    const btnRect = menuBtnRef.current?.getBoundingClientRect();
+    const menuEl = menuRef.current;
+    if (!btnRect || !menuEl) return;
+
+    const menuHeight = menuEl.offsetHeight;
+    const spaceBelow = window.innerHeight - btnRect.bottom;
+    const fitsBelow = spaceBelow >= menuHeight + 4;
+
+    setStyle({
+      position: "fixed",
+      zIndex: 101,
+      left: btnRect.right - 180,
+      ...(fitsBelow
+        ? { top: btnRect.bottom + 4 }
+        : { top: Math.max(4, btnRect.top - menuHeight - 4) }),
+      visibility: "visible",
+    });
+  }, [menuBtnRef]);
+
+  return createPortal(
+    <>
+      <div className="fixed inset-0 z-100" onClick={onClose} />
+      <div ref={menuRef} style={style}>
+        <ActionMenu items={items} />
+      </div>
+    </>,
+    document.body,
+  );
 }
 
 // --- Sortable page item ---
@@ -207,8 +253,8 @@ function SortablePageRow({
             <circle cx="10.5" cy="12.5" r="1.5" />
           </svg>
         </span>
-        <PageIcon icon={page.icon} />
-        <span className="truncate flex-1">{page.title}</span>
+        <PageIcon icon={page.icon} pageType={page.page_type} />
+        <span className="flex-1 min-w-0 wrap-break-word">{page.title}</span>
         {page.is_favorite && (
           <svg width="10" height="10" viewBox="0 0 24 24" fill="var(--color-saffron)" stroke="var(--color-saffron)" strokeWidth="2" className="shrink-0 group-hover:invisible">
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
@@ -221,7 +267,7 @@ function SortablePageRow({
         <button
           ref={menuBtnRef}
           onClick={(e) => { e.stopPropagation(); setMenuOpen(!menuOpen); }}
-          className="p-0.5 rounded hover:bg-black/5"
+          className="p-0.5 rounded hover:bg-theme-surface"
           style={{ color: "var(--color-textSecondary)" }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
@@ -230,18 +276,11 @@ function SortablePageRow({
             <circle cx="12" cy="19" r="2" />
           </svg>
         </button>
-        {menuOpen && createPortal(
-          <>
-            <div className="fixed inset-0 z-100" onClick={() => setMenuOpen(false)} />
-            <div className="fixed z-101" style={{
-              top: (menuBtnRef.current?.getBoundingClientRect().bottom ?? 0) + 4,
-              left: (menuBtnRef.current?.getBoundingClientRect().right ?? 0) - 180,
-            }}>
-              <ActionMenu items={menuItems} />
-            </div>
-          </>,
-          document.body,
-        )}
+        {menuOpen && <PositionedMenu
+          menuBtnRef={menuBtnRef}
+          onClose={() => setMenuOpen(false)}
+          items={menuItems}
+        />}
       </div>
     </div>
   );
@@ -363,7 +402,7 @@ function SidebarSection({
             <button
               ref={folderMenuBtnRef}
               onClick={(e) => { e.stopPropagation(); setMenuOpen(!menuOpen); }}
-              className="p-0.5 rounded hover:bg-black/5"
+              className="p-0.5 rounded hover:bg-theme-surface"
               style={{ color: "var(--color-textSecondary)" }}
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
@@ -415,6 +454,7 @@ export function MotionSidebarContent({
   onRenameFolder,
   onDeleteFolder,
   onNavigate,
+  onImport,
 }: MotionSidebarContentProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
@@ -710,7 +750,7 @@ export function MotionSidebarContent({
           <DragOverlay>
             {activeDragPage && (
               <div className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm" style={{ background: "var(--color-white)", boxShadow: "var(--shadow-2)", border: "1px solid var(--color-border)" }}>
-                <PageIcon icon={activeDragPage.icon} />
+                <PageIcon icon={activeDragPage.icon} pageType={activeDragPage.page_type} />
                 <span className="truncate">{activeDragPage.title}</span>
               </div>
             )}
@@ -733,6 +773,13 @@ export function MotionSidebarContent({
         >
           New folder
         </Button>
+        {onImport && (
+          <Button variant="ghost" size="sm" onClick={onImport} className="w-full justify-start"
+            leftIcon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>}
+          >
+            Import
+          </Button>
+        )}
       </div>
     </div>
   );

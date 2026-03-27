@@ -66,7 +66,7 @@ export function VersionHistory({
   return (
     <div className="version-sidebar">
       <div className="version-sidebar-header">
-        <span className="text-sm font-semibold text-gray-900">Revisions</span>
+        <span className="text-sm font-semibold text-theme-primary">Revisions</span>
         <div className="flex items-center gap-1">
           <Tooltip content="Save a named snapshot">
             <Button variant="outline" size="sm" onClick={onSaveVersion}>

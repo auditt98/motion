@@ -70,26 +70,26 @@ export function ExportMenu({ editor, pageTitle }: ExportMenuProps) {
       </Tooltip>
 
       {open && (
-        <div className="absolute right-0 top-full z-20 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
+        <div className="absolute right-0 top-full z-20 mt-1 w-48 bg-theme rounded-lg shadow-lg border border-theme py-1">
           <button
             onClick={() => handleExport("html")}
-            className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+            className="w-full text-left px-3 py-2 text-sm text-theme-primary hover:bg-theme-surface flex items-center gap-2"
           >
-            <span className="text-gray-400 text-xs font-mono w-6">HTML</span>
+            <span className="text-theme-secondary text-xs font-mono w-6">HTML</span>
             Export as HTML
           </button>
           <button
             onClick={() => handleExport("markdown")}
-            className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+            className="w-full text-left px-3 py-2 text-sm text-theme-primary hover:bg-theme-surface flex items-center gap-2"
           >
-            <span className="text-gray-400 text-xs font-mono w-6">MD</span>
+            <span className="text-theme-secondary text-xs font-mono w-6">MD</span>
             Export as Markdown
           </button>
           <button
             onClick={() => handleExport("pdf")}
-            className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+            className="w-full text-left px-3 py-2 text-sm text-theme-primary hover:bg-theme-surface flex items-center gap-2"
           >
-            <span className="text-gray-400 text-xs font-mono w-6">PDF</span>
+            <span className="text-theme-secondary text-xs font-mono w-6">PDF</span>
             Export as PDF
           </button>
         </div>

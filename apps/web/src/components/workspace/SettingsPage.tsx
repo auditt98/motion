@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useWorkspaceContext } from "@/contexts/WorkspaceContext";
 import { useWorkspaceMembers, type MemberWithUser } from "@/hooks/useWorkspaceMembers";
@@ -6,6 +6,7 @@ import { useInvitations } from "@/hooks/useInvitations";
 import { useInviteLinks } from "@/hooks/useInviteLinks";
 import { useAgentTokens } from "@/hooks/useAgentTokens";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import {
   Card,
   Button,
@@ -22,7 +23,7 @@ import {
 const ROLE_OPTIONS = ["owner", "admin", "member", "guest"] as const;
 
 export function SettingsPage() {
-  const { workspaceId, currentUserRole, workspaceName, renameWorkspace, deleteWorkspace } = useWorkspaceContext();
+  const { workspaceId, currentUserRole, workspaceName, workspaces, renameWorkspace, deleteWorkspace } = useWorkspaceContext();
   const { user } = useAuth();
   const { toast } = useToast();
   const { members, loading: membersLoading, updateRole, removeMember } =
@@ -34,9 +35,19 @@ export function SettingsPage() {
   const { tokens: agentTokens, createToken, revokeToken } =
     useAgentTokens(workspaceId);
 
+  const { displayName, resolvedDisplayName, updateDisplayName, defaultWorkspaceId, updateDefaultWorkspace } = useUserProfile(user?.id, user?.email);
   const navigate = useNavigate();
   const isAdmin = currentUserRole === "owner" || currentUserRole === "admin";
   const isOwner = currentUserRole === "owner";
+
+  const [profileName, setProfileName] = useState("");
+  const [profileNameLoaded, setProfileNameLoaded] = useState(false);
+  useEffect(() => {
+    if (!profileNameLoaded && displayName !== null) {
+      setProfileName(displayName);
+      setProfileNameLoaded(true);
+    }
+  }, [displayName, profileNameLoaded]);
 
   const [wsName, setWsName] = useState(workspaceName || "");
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -97,6 +108,68 @@ export function SettingsPage() {
     <div className="flex-1 overflow-y-auto" style={{ background: "var(--color-bg)" }}>
       <div className="max-w-2xl mx-auto px-8 py-12">
         <h1 className="text-2xl font-semibold mb-8" style={{ color: "var(--color-textPrimary)" }}>Settings</h1>
+
+        {/* Account */}
+        <Card className="mb-6">
+          <Card.Header>
+            <h2 className="text-lg font-medium" style={{ color: "var(--color-textPrimary)" }}>Account</h2>
+          </Card.Header>
+          <Card.Content>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <InputGroup
+                  label="Display name"
+                  value={profileName}
+                  onChange={(e) => setProfileName(e.target.value)}
+                  placeholder={user?.email?.split("@")[0] || "Your name"}
+                />
+              </div>
+              <div className="flex items-end">
+                <Button
+                  variant="primary"
+                  disabled={profileName.trim() === (displayName || "")}
+                  onClick={async () => {
+                    const { error } = await updateDisplayName(profileName);
+                    if (error) {
+                      toast({ title: "Failed to update name", variant: "error" });
+                    } else {
+                      toast({ title: "Display name updated", variant: "success" });
+                    }
+                  }}
+                >
+                  Save
+                </Button>
+              </div>
+            </div>
+            {workspaces.length > 1 && (
+              <div className="flex gap-2 mt-4">
+                <div className="flex-1">
+                  <SelectGroup
+                    label="Default workspace"
+                    value={defaultWorkspaceId || ""}
+                    onChange={(e) => {
+                      const value = e.target.value || null;
+                      updateDefaultWorkspace(value).then(({ error }) => {
+                        if (error) {
+                          toast({ title: "Failed to update default workspace", variant: "error" });
+                        } else {
+                          toast({ title: "Default workspace updated", variant: "success" });
+                        }
+                      });
+                    }}
+                  >
+                    <option value="">Auto-select</option>
+                    {workspaces.map((ws) => (
+                      <option key={ws.workspace_id} value={ws.workspace_id}>
+                        {ws.name}
+                      </option>
+                    ))}
+                  </SelectGroup>
+                </div>
+              </div>
+            )}
+          </Card.Content>
+        </Card>
 
         {/* Workspace name */}
         {isAdmin && (
@@ -300,7 +373,7 @@ export function SettingsPage() {
                       <Table.Row key={link.id}>
                         <Table.Cell>
                           <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full ${link.is_active ? "bg-green-400" : "bg-gray-300"}`} />
+                            <div className={`w-2 h-2 rounded-full ${link.is_active ? "bg-green-400" : "bg-theme-surface"}`} />
                             <Badge variant={link.is_active ? "success" : "secondary"}>{link.role}</Badge>
                             <span className="text-xs" style={{ color: "var(--color-textSecondary)" }}>
                               {link.use_count} use{link.use_count !== 1 ? "s" : ""}
