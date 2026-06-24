@@ -11,7 +11,12 @@
   "plugins": [
     {
       "name": "motion",
-      "source": "./plugins/claude",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/auditt98/motion.git",
+        "path": "plugins/claude",
+        "ref": "main"
+      },
       "displayName": "Motion",
       "description": "Read, write, and co-edit Motion documents, databases, and comments in real time over MCP — with a skill that teaches the agent how to use them.",
       "category": "Productivity",
