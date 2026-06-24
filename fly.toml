@@ -13,7 +13,7 @@ primary_region = 'sin'
   # Public base URL of this server — used in OAuth discovery metadata (issuer, endpoints).
   MCP_PUBLIC_URL = 'https://motion-mcp-server.fly.dev'
   # Web app that hosts the OAuth consent screen (/agent-consent).
-  WEB_APP_URL = 'https://motion-web.pages.dev'
+  WEB_APP_URL = 'https://motion.pages.dev'
   # Secrets (set via `fly secrets set`): SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, PARTYKIT_HOST
 
 [http_service]

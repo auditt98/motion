@@ -95,7 +95,7 @@ Build order matters: `packages/shared` → `packages/editor-extensions` → apps
 
 | Service | Platform | Config | URL |
 |---------|----------|--------|-----|
-| Web | Cloudflare Pages | — | motion-web.pages.dev |
+| Web | Cloudflare Pages | `apps/web/wrangler.toml` (project `motion`) | motion.pages.dev |
 | MCP Server | Fly.io | `fly.toml` + `apps/mcp-server/Dockerfile` | motion-mcp-server.fly.dev |
 | PartyKit | PartyKit hosting | `party/partykit.json` | motion-sync.auditt98.partykit.dev |
 | Database | Supabase | `supabase/migrations/` | ehggdmxcdoasiwkzjwsx.supabase.co |

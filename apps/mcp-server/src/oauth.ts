@@ -21,7 +21,7 @@ import { createHash, randomBytes } from "node:crypto";
 const SUPABASE_URL = process.env.SUPABASE_URL ?? "";
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 const MCP_PUBLIC_URL = process.env.MCP_PUBLIC_URL ?? "";
-const WEB_APP_URL = process.env.WEB_APP_URL ?? "https://motion-web.pages.dev";
+const WEB_APP_URL = process.env.WEB_APP_URL ?? "https://motion.pages.dev";
 
 const ACCESS_TTL_SECONDS = 3600; // 1 hour; refreshed within the grant's lifetime
 const AUTH_CODE_TTL_SECONDS = 600; // 10 minutes
