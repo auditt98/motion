@@ -7,7 +7,9 @@ same tools — the only difference is the wrapper each client understands.
 |------|-----------|---------|
 | [`claude/`](claude/) | Claude Code / Desktop plugin — bundles the MCP server (`.mcp.json`) + the `motion` skill | `/plugin marketplace add auditt98/motion` → `/plugin install motion@studio65` |
 | [`codex/`](codex/) | Codex plugin — bundles the same skill; MCP server added via `codex mcp add` | `codex mcp add motion --url https://motion-mcp-server.fly.dev/mcp` |
-| [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json) | Claude marketplace manifest listing the `motion` plugin | — |
+| [`../.claude-plugin/marketplace.json`](../.claude-plugin/marketplace.json) | Claude marketplace manifest — lives at the **repo root** (the `owner/repo` form requires it there); `pluginRoot: ./plugins` | — |
+
+> **Local testing** (no push needed): `/plugin marketplace add <abs path to repo>` → `/plugin install motion@studio65`.
 
 ## Why a skill *and* an MCP server
 
@@ -22,7 +24,7 @@ do. Claude Code surfaces MCP instructions too, but the skill keeps both platform
 ## DRY
 
 The skill text and the MCP server's `instructions`/prompt/resource all derive from a single
-source — `packages/shared/src/agent-guide.ts` — via the generator in
+source — `packages/shared/src/skill.ts` — via the generator in
 `packages/shared` (`pnpm --filter @motion/shared generate:agent-docs`). Edit the guide
 once; regenerate to update the skill, the docs, and the server instructions together.
 
