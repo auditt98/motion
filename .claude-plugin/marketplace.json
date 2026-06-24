@@ -6,13 +6,12 @@
     "url": "https://github.com/auditt98"
   },
   "metadata": {
-    "description": "Studio 65 plugins for Claude Code — starting with Motion, the AI-native collaborative document workspace.",
-    "pluginRoot": "./plugins"
+    "description": "Studio 65 plugins for Claude Code — starting with Motion, the AI-native collaborative document workspace."
   },
   "plugins": [
     {
       "name": "motion",
-      "source": "claude",
+      "source": "./plugins/claude",
       "displayName": "Motion",
       "description": "Read, write, and co-edit Motion documents, databases, and comments in real time over MCP — with a skill that teaches the agent how to use them.",
       "category": "Productivity",
