@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin.json",
+  "name": "motion",
+  "displayName": "Motion",
+  "version": "0.1.0",
+  "description": "Connect Claude to Motion — an AI-native collaborative document workspace. Read, write, and co-edit documents, databases, comments, and version history in real time, with edits shown as reviewable suggestions by default. Bundles the Motion MCP server and a skill that teaches the agent how to use it.",
+  "author": { "name": "Studio 65", "url": "https://github.com/auditt98" },
+  "homepage": "https://motion-web.pages.dev",
+  "repository": "https://github.com/auditt98/motion",
+  "license": "UNLICENSED",
+  "keywords": ["motion", "documents", "knowledge-base", "collaboration", "mcp", "crdt", "prosemirror", "yjs"],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
+}

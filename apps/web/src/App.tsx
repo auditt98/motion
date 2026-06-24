@@ -5,6 +5,7 @@ import { AuthPage } from "./components/auth/AuthPage";
 import { AppLayout } from "./components/layout/AppLayout";
 import { AcceptInvitePage } from "./components/workspace/AcceptInvitePage";
 import { PublicPageViewer } from "./components/editor/PublicPageViewer";
+import { AgentConsentPage } from "./components/auth/AgentConsentPage";
 
 export function App() {
   const { user, loading, signIn, signUp, signOut } = useAuth();
@@ -23,6 +24,7 @@ export function App() {
       <Routes>
         <Route path="/invite/:token/:pageId?" element={<AcceptInvitePage />} />
         <Route path="/p/:slug" element={<PublicPageViewer />} />
+        <Route path="/agent-consent" element={<AgentConsentPage />} />
         {user ? (
           <Route
             path="/*"

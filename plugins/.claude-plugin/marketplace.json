@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-marketplace.json",
+  "name": "studio65",
+  "owner": {
+    "name": "Studio 65",
+    "url": "https://github.com/auditt98"
+  },
+  "metadata": {
+    "description": "Studio 65 plugins for Claude Code — starting with Motion, the AI-native collaborative document workspace.",
+    "pluginRoot": "."
+  },
+  "plugins": [
+    {
+      "name": "motion",
+      "source": "./claude",
+      "displayName": "Motion",
+      "description": "Read, write, and co-edit Motion documents, databases, and comments in real time over MCP — with a skill that teaches the agent how to use them.",
+      "category": "Productivity",
+      "tags": ["motion", "documents", "knowledge-base", "collaboration", "mcp", "crdt"],
+      "homepage": "https://motion-web.pages.dev",
+      "repository": "https://github.com/auditt98/motion",
+      "license": "UNLICENSED",
+      "author": { "name": "Studio 65" }
+    }
+  ]
+}

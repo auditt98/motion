@@ -2,6 +2,8 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { randomUUID } from "node:crypto";
 import { YjsPeer } from "./yjs-peer.js";
 import { SupabaseClient } from "./supabase-client.js";
+import { handleMcpRequest } from "./mcp.js";
+import * as oauth from "./oauth.js";
 import { computeInsertPosition, renumberPositions, APP_NAME } from "@motion/shared";
 
 type EditMode = "direct" | "suggest";
@@ -204,7 +206,8 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
     res.writeHead(204, {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization, Mcp-Session-Id, Mcp-Protocol-Version",
+      "Access-Control-Expose-Headers": "Mcp-Session-Id",
     });
     res.end();
     return;
@@ -213,6 +216,38 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
   // Health check
   if (path === "/health" && method === "GET") {
     json(res, 200, { status: "ok", sessions: sessions.size });
+    return;
+  }
+
+  // Remote MCP server (Streamable HTTP transport) — any MCP client connects here.
+  if (path === "/mcp") {
+    await handleMcpRequest(req, res);
+    return;
+  }
+
+  // ── OAuth 2.1 (Motion is both authorization server and resource server) ──────
+  if (path === "/.well-known/oauth-protected-resource" && method === "GET") {
+    oauth.metadataProtectedResource(req, res);
+    return;
+  }
+  if (path === "/.well-known/oauth-authorization-server" && method === "GET") {
+    oauth.metadataAuthServer(req, res);
+    return;
+  }
+  if (path === "/oauth/register" && method === "POST") {
+    await oauth.register(req, res);
+    return;
+  }
+  if (path === "/oauth/authorize" && method === "GET") {
+    await oauth.authorize(req, res);
+    return;
+  }
+  if (path === "/oauth/authorize/approve" && method === "POST") {
+    await oauth.approve(req, res);
+    return;
+  }
+  if (path === "/oauth/token" && method === "POST") {
+    await oauth.token(req, res);
     return;
   }
 

@@ -5,14 +5,22 @@ import type { SupabaseClient } from "./supabase-client.js";
 import { computeInsertPosition, renumberPositions } from "@motion/shared";
 
 export interface ToolContext {
+  /**
+   * Lazy proxy that resolves `peerRef.current` on every property access, so
+   * document tools always act on the currently-connected document and throw a
+   * friendly error when no document is connected yet. Built by the MCP host.
+   */
   peer: YjsPeer;
   supabase: SupabaseClient;
   workspaceId: string;
   documentId: string;
   partykitHost: string;
   agentName: string;
-  /** Mutable reference so switch_document can swap the peer */
-  peerRef: { current: YjsPeer };
+  /** Mutable reference so switch_document can swap the peer (null until a document is opened). */
+  peerRef: { current: YjsPeer | null };
+  /** Schema mark/block type names, resolved once without a live peer (for tool descriptions). */
+  availableMarks: string[];
+  availableBlockTypes: string[];
 }
 
 /**
@@ -37,10 +45,11 @@ export function registerAllTools(server: McpServer, ctx: ToolContext): void {
  * All block-mutating tools accept a stable block ID instead of a fragile index.
  */
 function registerDocumentTools(server: McpServer, ctx: ToolContext): void {
-  const peer = ctx.peerRef.current;
-  // Dynamic descriptions based on actual schema
-  const availableMarks = peer.getAvailableMarks().join(", ");
-  const availableBlocks = peer.getAvailableBlockTypes().join(", ");
+  const peer = ctx.peer;
+  // Descriptions use schema-static type lists so tools register before any
+  // document is connected (the peer proxy is only touched inside handlers).
+  const availableMarks = ctx.availableMarks.join(", ");
+  const availableBlocks = ctx.availableBlockTypes.join(", ");
 
   server.tool(
     "read_outline",
@@ -655,7 +664,7 @@ function registerPageTools(server: McpServer, ctx: ToolContext): void {
         };
       }
       const { YjsPeer } = await import("./yjs-peer.js");
-      ctx.peerRef.current.disconnect();
+      ctx.peerRef.current?.disconnect();
       const newPeer = new YjsPeer(page_id, ctx.partykitHost, ctx.agentName);
       await newPeer.connect();
       ctx.peerRef.current = newPeer;
@@ -687,7 +696,7 @@ function registerPageTools(server: McpServer, ctx: ToolContext): void {
         };
       }
       const { YjsPeer } = await import("./yjs-peer.js");
-      ctx.peerRef.current.disconnect();
+      ctx.peerRef.current?.disconnect();
       const newPeer = new YjsPeer(page.id, ctx.partykitHost, ctx.agentName);
       await newPeer.connect();
       ctx.peerRef.current = newPeer;
@@ -961,7 +970,7 @@ function registerExportTools(server: McpServer, ctx: ToolContext): void {
       format: z.enum(["markdown", "html"]).describe("Export format"),
     },
     async ({ format }) => {
-      const peer = ctx.peerRef.current;
+      const peer = ctx.peer;
       peer.updateAwareness("thinking", `Exporting as ${format}...`);
       const content = format === "markdown"
         ? peer.exportAsMarkdown()
@@ -982,7 +991,7 @@ function registerSuggestionTools(server: McpServer, ctx: ToolContext): void {
     "List all pending suggestions in the document. Each suggestion has an id, author, type (add/delete), the text content, and which block it belongs to.",
     {},
     async () => {
-      const peer = ctx.peerRef.current;
+      const peer = ctx.peer;
       const suggestions = peer.findAllSuggestions();
       if (suggestions.length === 0) {
         return {
@@ -1004,7 +1013,7 @@ function registerSuggestionTools(server: McpServer, ctx: ToolContext): void {
       suggestion_id: z.string().describe("The suggestion ID to accept"),
     },
     async ({ suggestion_id }) => {
-      const peer = ctx.peerRef.current;
+      const peer = ctx.peer;
       peer.updateAwareness("writing", "Accepting suggestion...");
       const ok = peer.acceptSuggestion(suggestion_id);
       peer.updateAwareness("idle", "");
@@ -1027,7 +1036,7 @@ function registerSuggestionTools(server: McpServer, ctx: ToolContext): void {
       suggestion_id: z.string().describe("The suggestion ID to reject"),
     },
     async ({ suggestion_id }) => {
-      const peer = ctx.peerRef.current;
+      const peer = ctx.peer;
       peer.updateAwareness("writing", "Rejecting suggestion...");
       const ok = peer.rejectSuggestion(suggestion_id);
       peer.updateAwareness("idle", "");
@@ -1048,7 +1057,7 @@ function registerSuggestionTools(server: McpServer, ctx: ToolContext): void {
     "Accept all pending suggestions in the document.",
     {},
     async () => {
-      const peer = ctx.peerRef.current;
+      const peer = ctx.peer;
       peer.updateAwareness("writing", "Accepting all suggestions...");
       const count = peer.acceptAllSuggestions();
       peer.updateAwareness("idle", "");
@@ -1063,7 +1072,7 @@ function registerSuggestionTools(server: McpServer, ctx: ToolContext): void {
     "Reject all pending suggestions in the document.",
     {},
     async () => {
-      const peer = ctx.peerRef.current;
+      const peer = ctx.peer;
       peer.updateAwareness("writing", "Rejecting all suggestions...");
       const count = peer.rejectAllSuggestions();
       peer.updateAwareness("idle", "");
@@ -1130,7 +1139,7 @@ function registerDatabaseTools(server: McpServer, ctx: ToolContext): void {
       database_id: z.string().optional().describe(DB_ID_DESC),
     },
     async ({ database_id }) => {
-      const peer = ctx.peerRef.current;
+      const peer = ctx.peer;
       peer.updateAwareness("thinking", "Reading database schema...");
       const schema = peer.readDatabaseSchema(database_id);
       peer.updateAwareness("idle", "");
@@ -1149,7 +1158,7 @@ function registerDatabaseTools(server: McpServer, ctx: ToolContext): void {
       database_id: z.string().optional().describe(DB_ID_DESC),
     },
     async ({ limit, offset, database_id }) => {
-      const peer = ctx.peerRef.current;
+      const peer = ctx.peer;
       peer.updateAwareness("thinking", "Reading database rows...");
       const rows = peer.readDatabaseRows({ limit, offset, databaseId: database_id });
       peer.updateAwareness("idle", "");
@@ -1167,7 +1176,7 @@ function registerDatabaseTools(server: McpServer, ctx: ToolContext): void {
       database_id: z.string().optional().describe(DB_ID_DESC),
     },
     async ({ values, database_id }) => {
-      const peer = ctx.peerRef.current;
+      const peer = ctx.peer;
       peer.updateAwareness("writing", "Inserting database row...");
       const rowId = peer.insertDatabaseRow(values, database_id);
       peer.updateAwareness("idle", "");
@@ -1187,7 +1196,7 @@ function registerDatabaseTools(server: McpServer, ctx: ToolContext): void {
       database_id: z.string().optional().describe(DB_ID_DESC),
     },
     async ({ row_id, column_id, value, database_id }) => {
-      const peer = ctx.peerRef.current;
+      const peer = ctx.peer;
       peer.updateAwareness("writing", "Updating database cell...");
       const ok = peer.updateDatabaseCell(row_id, column_id, value, database_id);
       peer.updateAwareness("idle", "");
@@ -1205,7 +1214,7 @@ function registerDatabaseTools(server: McpServer, ctx: ToolContext): void {
       database_id: z.string().optional().describe(DB_ID_DESC),
     },
     async ({ row_id, database_id }) => {
-      const peer = ctx.peerRef.current;
+      const peer = ctx.peer;
       peer.updateAwareness("writing", "Deleting database row...");
       const ok = peer.deleteDatabaseRow(row_id, database_id);
       peer.updateAwareness("idle", "");
@@ -1225,7 +1234,7 @@ function registerDatabaseTools(server: McpServer, ctx: ToolContext): void {
       database_id: z.string().optional().describe(DB_ID_DESC),
     },
     async ({ name, type, options, database_id }) => {
-      const peer = ctx.peerRef.current;
+      const peer = ctx.peer;
       const colId = peer.addDatabaseColumn(name, type, options, database_id);
       return {
         content: [{ type: "text" as const, text: `Column added with id: ${colId}` }],
@@ -1244,7 +1253,7 @@ function registerDatabaseTools(server: McpServer, ctx: ToolContext): void {
       database_id: z.string().optional().describe(DB_ID_DESC),
     },
     async ({ column_id, name, type, options, database_id }) => {
-      const peer = ctx.peerRef.current;
+      const peer = ctx.peer;
       const updates: { name?: string; type?: string; options?: string[] } = {};
       if (name) updates.name = name;
       if (type) updates.type = type;
@@ -1261,7 +1270,7 @@ function registerDatabaseTools(server: McpServer, ctx: ToolContext): void {
     "List all inline database blocks embedded in the current document. Returns block IDs, database IDs, and titles. Use the database_id with other database tools to operate on a specific inline database.",
     {},
     async () => {
-      const peer = ctx.peerRef.current;
+      const peer = ctx.peer;
       const databases = peer.listInlineDatabases();
       if (databases.length === 0) {
         return {

@@ -7,7 +7,8 @@
  *
  * Also update:
  *  - apps/web/index.html (page title)
- *  - skills/motion-agent/ (skill name, descriptions, example URLs)
+ *  - packages/shared/src/skill.ts, then run `pnpm --filter @motion/shared generate:agent-docs`
+ *    (regenerates skills/motion/, the plugin skills, and docs/agent-document-guide.md)
  */
 
 /** Display name shown in the UI (auth page, sidebar fallback, page title) */

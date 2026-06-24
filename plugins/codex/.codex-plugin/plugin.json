@@ -1,0 +1,13 @@
+{
+  "name": "motion",
+  "displayName": "Motion",
+  "version": "0.1.0",
+  "description": "Connect Codex to Motion — an AI-native collaborative document workspace. Read, write, and co-edit documents, databases, comments, and version history in real time, with edits shown as reviewable suggestions by default. Bundles the Motion MCP server and a skill that teaches the agent how to use it.",
+  "author": "Studio 65",
+  "homepage": "https://motion-web.pages.dev",
+  "repository": "https://github.com/auditt98/motion",
+  "category": "Productivity",
+  "keywords": ["motion", "documents", "knowledge-base", "collaboration", "mcp"],
+  "skills": ["skills/motion"],
+  "mcp_servers": ["motion"]
+}
