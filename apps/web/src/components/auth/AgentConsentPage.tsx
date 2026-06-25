@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Button } from "@weave-design-system/react";
 import { useAuth } from "../../hooks/useAuth";
 import { supabase } from "../../lib/supabase";
+import { Feather, Bot, ShieldCheck } from "../shared/icons";
 
 /**
  * OAuth consent screen. The Motion MCP server's /oauth/authorize redirects the
@@ -140,10 +141,39 @@ export function AgentConsentPage() {
       style={{ background: "var(--color-bg)" }}
     >
       <div
-        className="w-full max-w-md rounded-2xl p-7"
-        style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
+        className="w-full max-w-md rounded-2xl overflow-hidden"
+        style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", boxShadow: "var(--shadow-2)" }}
       >
-        {children}
+        <div className="flex items-center gap-2 px-7 py-4" style={{ borderBottom: "1px solid var(--color-border)" }}>
+          <Feather size={18} style={{ color: "var(--color-rust)" }} />
+          <span style={{ fontFamily: "var(--font-display)", fontWeight: 500, fontSize: 17, color: "var(--color-textPrimary)" }}>
+            Motion
+          </span>
+        </div>
+        <div className="p-7">{children}</div>
+      </div>
+    </div>
+  );
+
+  const agentIdentity = (
+    <div
+      className="flex items-center gap-3 rounded-xl p-3"
+      style={{ background: "var(--color-bg)", border: "1px solid var(--color-border)" }}
+    >
+      <span
+        className="flex items-center justify-center shrink-0"
+        style={{ width: 38, height: 38, borderRadius: 999, background: "color-mix(in srgb, var(--color-teal) 14%, var(--color-surface))", color: "var(--color-teal)" }}
+      >
+        <Bot size={20} />
+      </span>
+      <div className="min-w-0">
+        <div className="text-sm font-semibold truncate" style={{ color: "var(--color-textPrimary)" }}>
+          {oauth.clientName}
+        </div>
+        <div className="flex items-center gap-1" style={{ color: "var(--color-textSecondary)", fontSize: 12 }}>
+          <ShieldCheck size={12} style={{ color: "var(--color-forest)" }} />
+          <span style={{ fontFamily: "var(--font-mono)" }}>Connecting over OAuth</span>
+        </div>
       </div>
     </div>
   );
@@ -166,7 +196,7 @@ export function AgentConsentPage() {
   if (invalidRequest) {
     return page(
       <div>
-        <h1 style={{ color: "var(--color-textPrimary)", fontSize: 20, fontWeight: 700, marginBottom: 8 }}>
+        <h1 style={{ fontFamily: "var(--font-display)", color: "var(--color-textPrimary)", fontSize: 22, fontWeight: 500, marginBottom: 8 }}>
           Invalid authorization request
         </h1>
         <p style={{ color: "var(--color-textSecondary)", fontSize: 14 }}>
@@ -180,16 +210,17 @@ export function AgentConsentPage() {
     return page(
       <div className="flex flex-col gap-4">
         <div>
-          <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 11, letterSpacing: 1, color: "var(--color-rust)" }}>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, letterSpacing: 1.4, color: "var(--color-rust)" }}>
             AUTHORIZE ACCESS
           </div>
-          <h1 style={{ color: "var(--color-textPrimary)", fontSize: 22, fontWeight: 700, marginTop: 6 }}>
+          <h1 style={{ fontFamily: "var(--font-display)", color: "var(--color-textPrimary)", fontSize: 24, fontWeight: 500, marginTop: 6 }}>
             Sign in to continue
           </h1>
           <p style={{ color: "var(--color-textSecondary)", fontSize: 14, marginTop: 4 }}>
-            <strong>{oauth.clientName}</strong> wants to connect to your Motion workspace.
+            Authorize the agent below to act in your Motion workspace.
           </p>
         </div>
+        {agentIdentity}
         <input
           type="email"
           placeholder="you@example.com"
@@ -226,17 +257,18 @@ export function AgentConsentPage() {
   return page(
     <div className="flex flex-col gap-5">
       <div>
-        <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 11, letterSpacing: 1, color: "var(--color-rust)" }}>
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, letterSpacing: 1.4, color: "var(--color-rust)" }}>
           AUTHORIZE ACCESS
         </div>
-        <h1 style={{ color: "var(--color-textPrimary)", fontSize: 22, fontWeight: 700, marginTop: 6 }}>
-          {oauth.clientName} wants to connect
+        <h1 style={{ fontFamily: "var(--font-display)", color: "var(--color-textPrimary)", fontSize: 24, fontWeight: 500, marginTop: 6 }}>
+          An agent wants to connect
         </h1>
         <p style={{ color: "var(--color-textSecondary)", fontSize: 14, marginTop: 4 }}>
-          It will act as an agent in your workspace with the access you choose below. Scoped,
+          It will act in your workspace with the access you choose below. Scoped,
           expiring, and revocable anytime in Settings → Members &amp; agents.
         </p>
       </div>
+      {agentIdentity}
 
       <div className="flex flex-col gap-2">
         <span style={labelStyle}>Workspace</span>
