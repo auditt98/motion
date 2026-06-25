@@ -24,12 +24,15 @@ export function TableOfContents({
       <div className="toc-sidebar-header">
         <span
           style={{
-            fontSize: 14,
+            fontFamily: "var(--font-mono)",
+            fontSize: 11,
             fontWeight: 600,
-            color: "var(--color-textPrimary)",
+            letterSpacing: 1.2,
+            textTransform: "uppercase",
+            color: "var(--color-textTertiary)",
           }}
         >
-          Contents
+          On this page
         </span>
         <Tooltip content="Close">
           <Button
