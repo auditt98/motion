@@ -12,6 +12,7 @@
   --color-border: #3D362E;
   --color-text-primary: #ECE5D8;
   --color-text-secondary: #A89E8E;
+  --color-text-tertiary: #8A8174;
   --color-white: #FFFFFF;
 
   /* Primary (Rust) */
@@ -52,6 +53,7 @@
   /* camelCase aliases (app code uses these with hex fallbacks) */
   --color-textPrimary: var(--color-text-primary);
   --color-textSecondary: var(--color-text-secondary);
+  --color-textTertiary: var(--color-text-tertiary);
   --color-rustLight: var(--color-rust-light);
   --color-gray-400: var(--color-text-secondary);
 
@@ -86,6 +88,7 @@
   --color-border: #E5DDCD;
   --color-text-primary: #221E18;
   --color-text-secondary: #6E6557;
+  --color-text-tertiary: #9C9384;
   --color-white: #FFFFFF;
 
   /* Primary (Rust) */
@@ -126,6 +129,7 @@
   /* camelCase aliases (app code uses these with hex fallbacks) */
   --color-textPrimary: var(--color-text-primary);
   --color-textSecondary: var(--color-text-secondary);
+  --color-textTertiary: var(--color-text-tertiary);
   --color-rustLight: var(--color-rust-light);
   --color-gray-400: var(--color-text-secondary);
 

@@ -589,16 +589,23 @@ export function MotionSidebarContent({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search pages..."
+            placeholder="Search or ask…"
             className="flex-1 text-xs outline-none bg-transparent"
             style={{ color: "var(--color-textPrimary)" }}
           />
-          {searchQuery && (
+          {searchQuery ? (
             <button onClick={() => setSearchQuery("")} style={{ color: "var(--color-textSecondary)" }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M18 6L6 18M6 6l12 12" />
               </svg>
             </button>
+          ) : (
+            <kbd
+              className="shrink-0"
+              style={{ fontFamily: "var(--font-mono)", fontSize: 10, padding: "1px 5px", borderRadius: 4, border: "1px solid var(--color-border)", color: "var(--color-textTertiary)", background: "var(--color-bg)" }}
+            >
+              ⌘K
+            </kbd>
           )}
         </div>
       </div>

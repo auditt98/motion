@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useMemo, type ReactNode, type CSSProperties } from "react";
 import { useNavigate } from "react-router";
 import type { User } from "@supabase/supabase-js";
 import type { PageItem, FolderItem } from "@/hooks/useWorkspace";
@@ -7,30 +7,7 @@ import { PageIcon } from "@/components/shared/PageIcon";
 import type { MemberWithUser } from "@/hooks/useWorkspaceMembers";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useBreakpoint } from "@/hooks/useBreakpoint";
-import {
-  Card,
-  Button,
-  Avatar,
-  Badge,
-  Tabs,
-  EmptyState,
-  ActivityFeed,
-  SkeletonLoader,
-  type ActivityItem,
-} from "@weave-design-system/react";
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  useDroppable,
-  DragOverlay,
-  type DragStartEvent,
-  type DragEndEvent,
-} from "@dnd-kit/core";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import { Avatar } from "@weave-design-system/react";
 
 interface DashboardProps {
   user: User;
@@ -55,9 +32,7 @@ function getGreeting(): string {
 }
 
 function timeAgo(dateStr: string): string {
-  const now = Date.now();
-  const then = new Date(dateStr).getTime();
-  const diff = now - then;
+  const diff = Date.now() - new Date(dateStr).getTime();
   const minutes = Math.floor(diff / 60000);
   if (minutes < 1) return "just now";
   if (minutes < 60) return `${minutes}m ago`;
@@ -68,103 +43,58 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString();
 }
 
-// --- Draggable page card ---
-
-function DraggablePageCard({ page, onClick }: { page: PageItem; onClick: () => void }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: page.id });
-  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1 };
-
-  return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} onClick={onClick}>
-      <Card className="cursor-grab active:cursor-grabbing h-full">
-        <Card.Content className="flex flex-col gap-2">
-          <PageIcon icon={page.icon} pageType={page.page_type} size="lg" />
-          <span className="text-sm font-medium truncate" style={{ color: "var(--color-textPrimary)" }}>{page.title}</span>
-          <span className="text-xs" style={{ color: "var(--color-textSecondary)" }}>{timeAgo(page.updated_at)}</span>
-        </Card.Content>
-      </Card>
-    </div>
-  );
+function capitalize(s: string): string {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 }
 
-// --- Droppable folder card ---
-
-function DroppableFolderCard({ folder, count, onClick }: { folder: FolderItem; count: number; onClick: () => void }) {
-  const { isOver, setNodeRef } = useDroppable({ id: `drop:folder:${folder.id}` });
-
-  return (
-    <div ref={setNodeRef} onClick={onClick}>
-      <Card className={`cursor-pointer h-full ${isOver ? "ring-2 ring-(--color-rust)" : ""}`}
-        style={{ background: isOver ? "var(--color-rustLight)" : "var(--color-surface)" }}
-      >
-        <Card.Content className="flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={folder.color || "var(--color-forest)"} strokeWidth="2">
-              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-            </svg>
-            <span className="text-sm font-medium truncate" style={{ color: "var(--color-textPrimary)" }}>{folder.name}</span>
-          </div>
-          <span className="text-xs" style={{ color: "var(--color-textSecondary)" }}>
-            {count} page{count !== 1 ? "s" : ""}
-            {isOver && " — drop to add"}
-          </span>
-        </Card.Content>
-      </Card>
-    </div>
-  );
+function initialsOf(name: string): string {
+  return (name || "AI").trim().split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
 }
 
-// --- Quick-start tile (Pencil dashboard) ---
+const eyebrow: CSSProperties = {
+  fontFamily: "var(--font-mono)",
+  fontSize: 11,
+  fontWeight: 600,
+  letterSpacing: 1.2,
+  color: "var(--color-textTertiary)",
+};
 
-function QuickTile({
-  color,
-  title,
-  subtitle,
-  icon,
-  onClick,
-}: {
-  color: string;
-  title: string;
-  subtitle: string;
-  icon: React.ReactNode;
-  onClick: () => void;
+const sectionHeading: CSSProperties = {
+  fontFamily: "var(--font-display)",
+  fontWeight: 500,
+  color: "var(--color-textPrimary)",
+};
+
+// --- Quick-start tile ---
+
+function QuickTile({ color, title, subtitle, icon, onClick }: {
+  color: string; title: string; subtitle: string; icon: ReactNode; onClick: () => void;
 }) {
   return (
     <button
       onClick={onClick}
       className="flex flex-col text-left transition-all hover:-translate-y-0.5"
-      style={{
-        padding: 16,
-        borderRadius: 12,
-        border: "1px solid var(--color-border)",
-        background: "var(--color-surface)",
-        boxShadow: "var(--shadow-1)",
-      }}
+      style={{ padding: 16, gap: 11, borderRadius: 10, border: "1px solid var(--color-border)", background: "var(--color-white)" }}
     >
       <span
-        className="flex items-center justify-center mb-3"
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: 9,
-          background: `color-mix(in srgb, ${color} 14%, var(--color-surface))`,
-          color,
-        }}
+        className="flex items-center justify-center"
+        style={{ width: 34, height: 34, borderRadius: 8, background: `color-mix(in srgb, ${color} 14%, var(--color-white))`, color }}
       >
         {icon}
       </span>
-      <span className="text-sm font-semibold" style={{ color: "var(--color-textPrimary)" }}>{title}</span>
-      <span className="text-xs mt-0.5" style={{ color: "var(--color-textSecondary)" }}>{subtitle}</span>
+      <div className="flex flex-col" style={{ gap: 2 }}>
+        <span className="text-sm font-semibold" style={{ color: "var(--color-textPrimary)" }}>{title}</span>
+        <span className="text-xs" style={{ color: "var(--color-textTertiary)" }}>{subtitle}</span>
+      </div>
     </button>
   );
 }
 
-// --- Main Dashboard ---
+// --- Main dashboard ---
 
 export function Dashboard({
   user,
   pages,
-  folders,
   recentPages,
   agentActivity,
   members,
@@ -172,274 +102,214 @@ export function Dashboard({
   onCreatePage,
   onCreateDatabase,
   onCreateFolder,
-  onMovePageToFolder,
   onImport,
 }: DashboardProps) {
   const navigate = useNavigate();
   const { isMobile } = useBreakpoint();
-  const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
-  const [activeDragId, setActiveDragId] = useState<string | null>(null);
+  const { resolvedDisplayName: rawName } = useUserProfile(user.id, user.email);
+  const displayName = capitalize(rawName);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-  );
+  const now = new Date();
+  const dateStr = `${now.toLocaleDateString("en-US", { weekday: "long" })} · ${now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`.toUpperCase();
 
-  const { resolvedDisplayName: displayName } = useUserProfile(user.id, user.email);
+  const subtitle =
+    agentActivity.length > 0
+      ? `${agentActivity[0].actor_name || "An agent"} has been active — ${agentActivity.length} recent update${agentActivity.length > 1 ? "s" : ""} in your workspace.`
+      : "Pick up where you left off, or start something new.";
 
-  const visiblePages = activeFolderId
-    ? pages.filter((p) => p.folder_id === activeFolderId)
-    : pages.filter((p) => !p.folder_id);
-
-  const sortedPages = useMemo(
-    () => [...visiblePages].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()),
-    [visiblePages],
-  );
-
-  const activeDragPage = activeDragId ? pages.find((p) => p.id === activeDragId) : null;
-
-  function handleDragStart(event: DragStartEvent) { setActiveDragId(event.active.id as string); }
-
-  function handleDragEnd(event: DragEndEvent) {
-    setActiveDragId(null);
-    const { active, over } = event;
-    if (!over) return;
-    const activeId = active.id as string;
-    const overId = over.id as string;
-
-    if (overId.startsWith("drop:folder:")) {
-      const targetFolderId = overId.replace("drop:folder:", "");
-      const page = pages.find((p) => p.id === activeId);
-      if (page && page.folder_id !== targetFolderId) onMovePageToFolder(activeId, targetFolderId);
-      return;
-    }
-    if (overId === "drop:unfiled") {
-      const page = pages.find((p) => p.id === activeId);
-      if (page && page.folder_id !== null) onMovePageToFolder(activeId, null);
-    }
-  }
+  const recent = useMemo(() => {
+    const fromVisits = recentPages.map((rp) => ({
+      id: rp.page_id,
+      title: rp.title,
+      icon: rp.icon,
+      pageType: pages.find((p) => p.id === rp.page_id)?.page_type,
+      meta: `Opened ${timeAgo(rp.last_visited)}`,
+    }));
+    if (fromVisits.length > 0) return fromVisits.slice(0, 6);
+    return [...pages]
+      .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+      .slice(0, 6)
+      .map((p) => ({ id: p.id, title: p.title, icon: p.icon, pageType: p.page_type, meta: `Edited ${timeAgo(p.updated_at)}` }));
+  }, [recentPages, pages]);
 
   async function handleCreatePage() {
-    const page = await onCreatePage(undefined, null, activeFolderId);
+    const page = await onCreatePage();
     if (page) navigate(`/page/${page.id}`);
   }
-
   async function handleCreateDatabase() {
-    const page = await onCreateDatabase(undefined, activeFolderId);
+    const page = await onCreateDatabase();
     if (page) navigate(`/page/${page.id}`);
   }
 
-  // Agent activity items for ActivityFeed
-  const agentActivityItems: ActivityItem[] = agentActivity.map((item) => ({
-    id: item.id,
-    name: item.actor_name || "Agent",
-    action: `edited "${item.page_title}"`,
-    timestamp: timeAgo(item.created_at),
-  }));
-
-  function UnfiledDropZone() {
-    const { isOver, setNodeRef } = useDroppable({ id: "drop:unfiled" });
-    return (
-      <div
-        ref={setNodeRef}
-        className={`mt-3 px-4 py-3 rounded-md border border-dashed text-xs text-center transition-colors ${isOver ? "border-(--color-rust)" : ""}`}
-        style={{
-          borderColor: isOver ? "var(--color-rust)" : "var(--color-border)",
-          background: isOver ? "var(--color-rustLight)" : undefined,
-          color: isOver ? "var(--color-rust)" : "var(--color-textSecondary)",
-        }}
-      >
-        {isOver ? "Drop to remove from folder" : "Drag here to remove from folder"}
+  const topbar = (
+    <div
+      className="flex items-center justify-between shrink-0"
+      style={{ height: 56, padding: "0 28px", borderBottom: "1px solid var(--color-border)" }}
+    >
+      <div className="flex items-center" style={{ gap: 8 }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-textSecondary)" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
+        <span className="text-sm font-medium" style={{ color: "var(--color-textPrimary)" }}>Home</span>
       </div>
-    );
-  }
+      <button
+        onClick={handleCreatePage}
+        className="flex items-center hover:opacity-90"
+        style={{ gap: 7, padding: "8px 14px", borderRadius: 8, background: "var(--color-rust)", color: "var(--color-white)", fontSize: 14, fontWeight: 600 }}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 5v14M5 12h14" /></svg>
+        New page
+      </button>
+    </div>
+  );
+
+  const tiles = (
+    <div className="grid" style={{ gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: 12 }}>
+      <QuickTile
+        color="var(--color-rust)" title="New doc" subtitle="Rich-text page" onClick={handleCreatePage}
+        icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>}
+      />
+      <QuickTile
+        color="var(--color-teal)" title="Database" subtitle="Structured view" onClick={handleCreateDatabase}
+        icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M3 5v14a9 3 0 0 0 18 0V5" /><path d="M3 12a9 3 0 0 0 18 0" /></svg>}
+      />
+      <QuickTile
+        color="var(--color-gold)" title="New folder" subtitle="Group pages" onClick={() => onCreateFolder()}
+        icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>}
+      />
+      <QuickTile
+        color="var(--color-forest)" title="Import" subtitle="Notion, Docs, MD" onClick={onImport}
+        icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>}
+      />
+    </div>
+  );
+
+  const recentSection = (
+    <section className="flex flex-col" style={{ gap: 4 }}>
+      <div className="flex items-center" style={{ padding: "0 2px 6px" }}>
+        <h2 style={{ ...sectionHeading, fontSize: 22 }}>Recent</h2>
+      </div>
+      <div className="flex flex-col">
+        {recent.length === 0 ? (
+          <p className="text-sm" style={{ padding: "13px 6px", color: "var(--color-textTertiary)" }}>
+            Nothing yet — create your first page above.
+          </p>
+        ) : (
+          recent.map((r) => (
+            <button
+              key={r.id}
+              onClick={() => navigate(`/page/${r.id}`)}
+              className="flex items-center text-left transition-colors hover:opacity-80"
+              style={{ gap: 13, padding: "13px 6px", borderBottom: "1px solid var(--color-border)" }}
+            >
+              <PageIcon icon={r.icon} pageType={r.pageType} />
+              <div className="flex flex-col min-w-0 flex-1" style={{ gap: 2 }}>
+                <span className="truncate text-sm font-medium" style={{ color: "var(--color-textPrimary)" }}>{r.title}</span>
+                <span className="text-xs" style={{ color: "var(--color-textTertiary)" }}>{r.meta}</span>
+              </div>
+            </button>
+          ))
+        )}
+      </div>
+    </section>
+  );
+
+  const agentPanel = (
+    <div
+      className="flex flex-col"
+      style={{ gap: 16, padding: 18, borderRadius: 14, background: "var(--color-surface)", border: "1px solid var(--color-border)" }}
+    >
+      <div className="flex items-center" style={{ gap: 8 }}>
+        <span style={{ width: 8, height: 8, borderRadius: 999, background: "var(--color-teal)" }} />
+        <h2 style={{ ...sectionHeading, fontSize: 16, fontWeight: 600 }}>Agent activity</h2>
+        <div className="flex-1" />
+        <span className="inline-flex items-center" style={{ gap: 5, padding: "3px 8px", borderRadius: 999, background: "var(--color-teal-light)" }}>
+          <span style={{ width: 5, height: 5, borderRadius: 999, background: "var(--color-teal)" }} />
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 600, color: "var(--color-teal)" }}>LIVE</span>
+        </span>
+      </div>
+      <div className="flex flex-col" style={{ gap: 15 }}>
+        {agentActivity.length === 0 ? (
+          <p className="text-sm" style={{ color: "var(--color-textTertiary)" }}>No agent activity yet.</p>
+        ) : (
+          agentActivity.slice(0, 4).map((item) => (
+            <button
+              key={item.id}
+              onClick={() => navigate(`/page/${item.page_id}`)}
+              className="flex text-left transition-opacity hover:opacity-80"
+              style={{ gap: 11 }}
+            >
+              <span
+                className="flex items-center justify-center shrink-0"
+                style={{ width: 28, height: 28, borderRadius: 999, background: "var(--color-teal-light)", color: "var(--color-teal)", fontSize: 10, fontWeight: 600 }}
+              >
+                {initialsOf(item.actor_name || "AI")}
+              </span>
+              <div className="flex flex-col min-w-0" style={{ gap: 1 }}>
+                <span className="text-sm" style={{ color: "var(--color-textPrimary)", lineHeight: 1.35 }}>
+                  <span style={{ fontWeight: 600 }}>{item.actor_name || "An agent"}</span> edited a page
+                </span>
+                <span className="text-xs truncate" style={{ color: "var(--color-textTertiary)" }}>{item.page_title} · {timeAgo(item.created_at)}</span>
+              </div>
+            </button>
+          ))
+        )}
+      </div>
+    </div>
+  );
+
+  const teamSection = (
+    <div className="flex flex-col" style={{ gap: 10 }}>
+      <div className="flex items-center" style={{ gap: 8, padding: "0 2px" }}>
+        <h2 style={{ ...sectionHeading, fontSize: 16 }}>Team</h2>
+        {!membersLoading && <span className="text-xs" style={{ color: "var(--color-textTertiary)" }}>{members.length}</span>}
+        <div className="flex-1" />
+        <button onClick={() => navigate("/settings")} className="text-xs hover:opacity-80" style={{ color: "var(--color-rust)", fontWeight: 600 }}>Manage</button>
+      </div>
+      {membersLoading ? (
+        <p className="text-sm" style={{ color: "var(--color-textTertiary)", padding: "0 2px" }}>Loading…</p>
+      ) : (
+        members.slice(0, 6).map((m) => {
+          const name = m.user.display_name || m.user.email.split("@")[0];
+          return (
+            <div key={m.id} className="flex items-center" style={{ gap: 11, padding: "8px 4px" }}>
+              <Avatar name={name} src={m.user.avatar_url || undefined} size="sm" />
+              <span className="flex-1 min-w-0 truncate text-sm" style={{ color: "var(--color-textPrimary)" }}>{name}</span>
+              <span className="text-xs capitalize" style={{ color: "var(--color-textTertiary)" }}>{m.role}</span>
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
 
   return (
-    <div className="flex-1 overflow-y-auto" style={{ background: "var(--color-bg)" }}>
-      <div className="max-w-5xl mx-auto px-4 py-6 sm:px-8 sm:py-12">
-        {/* Header */}
-        <div
-          className="flex gap-4 mb-7"
-          style={{
-            flexDirection: isMobile ? "column" : "row",
-            alignItems: isMobile ? "flex-start" : "flex-end",
-            justifyContent: "space-between",
-          }}
-        >
-          <div>
-            <div className="mb-1.5" style={{ fontFamily: "var(--font-mono)", fontSize: 11.5, fontWeight: 600, letterSpacing: 1.2, color: "var(--color-textSecondary)" }}>
-              {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }).toUpperCase()}
-            </div>
-            <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 500, fontSize: 32, lineHeight: 1.1, color: "var(--color-textPrimary)" }}>
+    <div className="flex-1 flex flex-col overflow-hidden" style={{ background: "var(--color-bg)" }}>
+      {topbar}
+      <div className="flex-1 overflow-y-auto">
+        <div className="mx-auto" style={{ maxWidth: 1120, padding: isMobile ? "24px 20px 40px" : "34px 40px 48px" }}>
+          {/* Greeting */}
+          <div className="flex flex-col" style={{ gap: 8, marginBottom: 30 }}>
+            <div style={eyebrow}>{dateStr}</div>
+            <h1 style={{ fontFamily: "var(--font-display)", fontSize: isMobile ? 28 : 36, fontWeight: 450, lineHeight: 1.12, color: "var(--color-textPrimary)" }}>
               {getGreeting()}, {displayName}
             </h1>
+            <p style={{ fontSize: 15, lineHeight: 1.45, color: "var(--color-textSecondary)" }}>{subtitle}</p>
           </div>
-          <Button variant="primary" size="sm" onClick={handleCreatePage}
-            leftIcon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>}
-          >
-            New page
-          </Button>
+
+          {/* Columns */}
+          <div className="flex" style={{ gap: 36, flexDirection: isMobile ? "column" : "row" }}>
+            <div className="flex flex-col" style={{ gap: 28, flex: 1, minWidth: 0 }}>
+              <section className="flex flex-col" style={{ gap: 12 }}>
+                <div style={eyebrow}>QUICK START</div>
+                {tiles}
+              </section>
+              {recentSection}
+            </div>
+            <div className="flex flex-col" style={{ gap: 22, width: isMobile ? "100%" : 340, flexShrink: 0 }}>
+              {agentPanel}
+              {teamSection}
+            </div>
+          </div>
         </div>
-
-        {/* Quick start */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-9">
-          <QuickTile
-            color="var(--color-rust)"
-            title="New page"
-            subtitle="Start a blank document"
-            onClick={handleCreatePage}
-            icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>}
-          />
-          <QuickTile
-            color="var(--color-teal)"
-            title="New database"
-            subtitle="Structured tables & views"
-            onClick={handleCreateDatabase}
-            icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M3 5v14a9 3 0 0 0 18 0V5" /><path d="M3 12a9 3 0 0 0 18 0" /></svg>}
-          />
-          <QuickTile
-            color="var(--color-gold)"
-            title="New folder"
-            subtitle="Group related pages"
-            onClick={() => onCreateFolder()}
-            icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>}
-          />
-          <QuickTile
-            color="var(--color-forest)"
-            title="Import"
-            subtitle="Markdown, HTML, or docs"
-            onClick={onImport}
-            icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>}
-          />
-        </div>
-
-        {/* Recently visited */}
-        {recentPages.length > 0 && (
-          <section className="mb-8">
-            <h2 className="text-xs font-medium uppercase tracking-wider mb-3" style={{ color: "var(--color-textSecondary)" }}>
-              Recently visited
-            </h2>
-            <div className="flex gap-3 overflow-x-auto pb-1">
-              {recentPages.map((rp) => (
-                <Card key={rp.page_id} className="shrink-0 cursor-pointer min-w-0"
-                  onClick={() => navigate(`/page/${rp.page_id}`)}
-                >
-                  <Card.Content className="flex items-center gap-2 py-2 px-3">
-                    <PageIcon icon={rp.icon} />
-                    <span className="text-sm truncate max-w-24 sm:max-w-35" style={{ color: "var(--color-textPrimary)" }}>{rp.title}</span>
-                    <span className="text-xs shrink-0 hidden sm:inline" style={{ color: "var(--color-textSecondary)" }}>{timeAgo(rp.last_visited)}</span>
-                  </Card.Content>
-                </Card>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Documents */}
-        <section className="mb-8">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <h2 className="text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-textSecondary)" }}>
-                {activeFolderId
-                  ? folders.find((f) => f.id === activeFolderId)?.name || "Folder"
-                  : "Documents"}
-              </h2>
-              {activeFolderId && (
-                <Button variant="ghost" size="sm" onClick={() => setActiveFolderId(null)}
-                  leftIcon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>}
-                >
-                  Back
-                </Button>
-              )}
-            </div>
-          </div>
-
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {!activeFolderId && folders.map((folder) => {
-                const count = pages.filter((p) => p.folder_id === folder.id).length;
-                return <DroppableFolderCard key={folder.id} folder={folder} count={count} onClick={() => setActiveFolderId(folder.id)} />;
-              })}
-
-              {sortedPages.map((page) => (
-                <DraggablePageCard key={page.id} page={page} onClick={() => navigate(`/page/${page.id}`)} />
-              ))}
-
-              {sortedPages.length === 0 && (!activeFolderId ? folders.length === 0 : true) && (
-                <div className="col-span-full">
-                  <EmptyState
-                    icon={<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-textSecondary)" strokeWidth="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><path d="M12 18v-6M9 15h6" /></svg>}
-                    title="No documents yet"
-                    description={activeFolderId ? "This folder is empty" : "Create your first page to get started"}
-                    actionLabel="Create page"
-                    onAction={handleCreatePage}
-                  />
-                </div>
-              )}
-            </div>
-
-            {activeFolderId && activeDragId && <UnfiledDropZone />}
-
-            <DragOverlay>
-              {activeDragPage && (
-                <Card className="shadow-(--shadow-3)">
-                  <Card.Content className="flex items-center gap-2 py-2 px-3">
-                    <PageIcon icon={activeDragPage.icon} pageType={activeDragPage.page_type} />
-                    <span className="text-sm truncate">{activeDragPage.title}</span>
-                  </Card.Content>
-                </Card>
-              )}
-            </DragOverlay>
-          </DndContext>
-        </section>
-
-        {/* Team */}
-        <section className="mb-8">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xs font-medium uppercase tracking-wider" style={{ color: "var(--color-textSecondary)" }}>
-              Team
-              {!membersLoading && <Badge variant="secondary" className="ml-2">{members.length}</Badge>}
-            </h2>
-            <Button variant="ghost" size="sm" onClick={() => navigate("/settings")}>Manage</Button>
-          </div>
-          {membersLoading ? (
-            <div className="flex gap-3">
-              {[1, 2, 3].map((i) => (<SkeletonLoader key={i} shape="avatar" />))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3">
-              {members.map((member) => {
-                const name = member.user.display_name || member.user.email.split("@")[0];
-                return (
-                  <Card key={member.id} className="p-0!">
-                    <Card.Content className="flex items-center gap-2 px-3 py-2">
-                      <Avatar name={name} src={member.user.avatar_url || undefined} size="sm" />
-                      <div className="min-w-0">
-                        <div className="text-sm truncate" style={{ color: "var(--color-textPrimary)" }}>{name}</div>
-                        <Badge variant={member.role === "owner" ? "primary" : member.role === "admin" ? "info" : "secondary"}>
-                          {member.role}
-                        </Badge>
-                      </div>
-                    </Card.Content>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </section>
-
-        {/* Agent activity */}
-        {agentActivityItems.length > 0 && (
-          <section className="mb-8">
-            <h2 className="text-xs font-medium uppercase tracking-wider mb-3" style={{ color: "var(--color-textSecondary)" }}>
-              Agent activity
-            </h2>
-            <Card>
-              <Card.Content>
-                <ActivityFeed items={agentActivityItems} />
-              </Card.Content>
-            </Card>
-          </section>
-        )}
       </div>
     </div>
   );

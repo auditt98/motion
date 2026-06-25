@@ -291,8 +291,15 @@ export function AppLayout({ user, onSignOut, themeState }: AppLayoutProps) {
           <WeaveSidebar
             collapsed={sidebarCollapsed}
             onCollapsedChange={setSidebarCollapsed}
+            className={sidebarCollapsed ? undefined : "!w-[274px]"}
             header={
-              <div>
+              <div className="flex flex-col" style={{ gap: 10 }}>
+                {!sidebarCollapsed && (
+                  <div className="flex items-center" style={{ gap: 7 }}>
+                    <Feather size={17} style={{ color: "var(--color-rust)" }} />
+                    <span style={{ fontFamily: "var(--font-display)", fontWeight: 500, fontSize: 17, color: "var(--color-textPrimary)" }}>Motion</span>
+                  </div>
+                )}
                 <button
                   ref={wsBtnRef}
                   onClick={() => {
@@ -303,6 +310,7 @@ export function AppLayout({ user, onSignOut, themeState }: AppLayoutProps) {
                     setWsMenuOpen(!wsMenuOpen);
                   }}
                   className="flex items-center gap-2 min-w-0 cursor-pointer hover:opacity-80"
+                  style={sidebarCollapsed ? undefined : { padding: "6px 8px", borderRadius: 8, border: "1px solid var(--color-border)", background: "var(--color-surface)" }}
                 >
                   <div className="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-sm shrink-0" style={{ background: "var(--color-rust)", color: "var(--color-white)" }}>
                     {(workspaceName || "M").charAt(0).toUpperCase()}
@@ -312,7 +320,7 @@ export function AppLayout({ user, onSignOut, themeState }: AppLayoutProps) {
                       <span className="font-semibold text-sm truncate" style={{ color: "var(--color-textPrimary)" }}>
                         {workspaceName || APP_NAME}
                       </span>
-                      <svg className="w-3.5 h-3.5 shrink-0" style={{ color: "var(--color-textSecondary)" }} viewBox="0 0 16 16" fill="currentColor">
+                      <svg className="w-3.5 h-3.5 shrink-0 ml-auto" style={{ color: "var(--color-textSecondary)" }} viewBox="0 0 16 16" fill="currentColor">
                         <path d="M4.427 6.427a.75.75 0 011.06-.073L8 8.574l2.513-2.22a.75.75 0 11.994 1.126l-3 2.647a.75.75 0 01-.994 0l-3-2.647a.75.75 0 01-.086-1.073z" />
                       </svg>
                     </>
