@@ -184,7 +184,16 @@ function EditorPageInner({
   const syncStatus = useSyncStatus(ydoc);
   const peers = usePresence(provider);
 
-  const [showComments, setShowComments] = useState(false);
+  const [showComments, setShowComments] = useState(() => {
+    try {
+      // Desktop only — avoid auto-opening the full-screen comment sheet on mobile/tablet.
+      if (!window.matchMedia("(min-width: 1024px)").matches) return false;
+      const stored = localStorage.getItem("motion-comments-visible-v1");
+      return stored === null ? true : stored === "true";
+    } catch {
+      return false;
+    }
+  });
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [editorInstance, setEditorInstance] = useState<TipTapEditor | null>(null);
   const [pendingComment, setPendingComment] = useState<PendingComment | null>(null);
@@ -452,8 +461,10 @@ function EditorPageInner({
 
   const handleToggleComments = useCallback(() => {
     setShowComments((v) => {
-      if (!v) setShowVersionHistory(false);
-      return !v;
+      const next = !v;
+      if (next) setShowVersionHistory(false);
+      try { localStorage.setItem("motion-comments-visible-v1", String(next)); } catch { /* noop */ }
+      return next;
     });
   }, []);
 
