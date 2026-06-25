@@ -1,10 +1,45 @@
 import type { ColumnType } from "@motion/shared";
-import { Badge, Avatar, Tooltip } from "@weave-design-system/react";
+import { Avatar, Tooltip } from "@weave-design-system/react";
 
 interface CellRendererProps {
   value: unknown;
   columnType: ColumnType;
   onToggleCheckbox?: () => void;
+}
+
+/** Warm-editorial hues for select/status pills, assigned deterministically per option value. */
+const PILL_HUES = [
+  "var(--color-forest)",
+  "var(--color-gold)",
+  "var(--color-teal)",
+  "var(--color-rust)",
+  "var(--color-textSecondary)",
+];
+
+function hueFor(value: string): string {
+  let h = 0;
+  for (let i = 0; i < value.length; i++) h = (h * 31 + value.charCodeAt(i)) >>> 0;
+  return PILL_HUES[h % PILL_HUES.length];
+}
+
+function SelectPill({ value }: { value: string }) {
+  const hue = hueFor(value);
+  return (
+    <span
+      className="inline-block truncate"
+      style={{
+        padding: "2px 9px",
+        borderRadius: 999,
+        fontSize: 12,
+        fontWeight: 600,
+        lineHeight: 1.5,
+        background: `color-mix(in srgb, ${hue} 15%, transparent)`,
+        color: hue,
+      }}
+    >
+      {value}
+    </span>
+  );
 }
 
 export function CellRenderer({ value, columnType, onToggleCheckbox }: CellRendererProps) {
@@ -21,14 +56,14 @@ export function CellRenderer({ value, columnType, onToggleCheckbox }: CellRender
 
     case "select":
       if (!value) return null;
-      return <Badge>{String(value)}</Badge>;
+      return <SelectPill value={String(value)} />;
 
     case "multi_select": {
       if (!Array.isArray(value) || value.length === 0) return null;
       return (
         <div className="flex gap-1 flex-wrap">
           {value.map((v, i) => (
-            <Badge key={i}>{String(v)}</Badge>
+            <SelectPill key={i} value={String(v)} />
           ))}
         </div>
       );

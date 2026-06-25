@@ -117,7 +117,7 @@ export function ColumnHeader({
       ) : (
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="flex-1 text-left truncate hover:opacity-80"
+          className="flex-1 text-left truncate hover:opacity-80 uppercase tracking-wide text-[11px] font-semibold"
         >
           {column.name}
         </button>
