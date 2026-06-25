@@ -593,9 +593,8 @@ function EditorPageInner({
           </div>
         )}
 
-        {/* Main editor pane — white "page" on the parchment desk; kept near the outline on wide screens */}
+        {/* Main editor pane — centered white "page" on the parchment desk */}
         <div ref={editorScrollRef} className="flex-1 overflow-y-auto bg-theme">
-          <div style={isMobileOrTablet ? undefined : { maxWidth: 1160, marginRight: "auto" }}>
           <div
             className={isMobileOrTablet ? "px-4 py-6" : ""}
             style={isMobileOrTablet ? undefined : { maxWidth: 880, margin: "32px auto 64px", background: "var(--color-paper)", border: "1px solid var(--color-border)", borderRadius: 14, boxShadow: "var(--shadow-2)", padding: "56px 72px" }}
@@ -631,7 +630,6 @@ function EditorPageInner({
             ) : (
               <div className="animate-pulse h-32 bg-theme-surface rounded" />
             )}
-          </div>
           </div>
         </div>
 
