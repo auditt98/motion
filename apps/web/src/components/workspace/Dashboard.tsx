@@ -6,6 +6,7 @@ import type { RecentPage, AgentActivityItem } from "@/hooks/usePageActivity";
 import { PageIcon } from "@/components/shared/PageIcon";
 import type { MemberWithUser } from "@/hooks/useWorkspaceMembers";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 import {
   Card,
   Button,
@@ -175,6 +176,7 @@ export function Dashboard({
   onImport,
 }: DashboardProps) {
   const navigate = useNavigate();
+  const { isMobile } = useBreakpoint();
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
 
@@ -255,7 +257,14 @@ export function Dashboard({
     <div className="flex-1 overflow-y-auto" style={{ background: "var(--color-bg)" }}>
       <div className="max-w-5xl mx-auto px-4 py-6 sm:px-8 sm:py-12">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-7">
+        <div
+          className="flex gap-4 mb-7"
+          style={{
+            flexDirection: isMobile ? "column" : "row",
+            alignItems: isMobile ? "flex-start" : "flex-end",
+            justifyContent: "space-between",
+          }}
+        >
           <div>
             <div className="mb-1.5" style={{ fontFamily: "var(--font-mono)", fontSize: 11.5, fontWeight: 600, letterSpacing: 1.2, color: "var(--color-textSecondary)" }}>
               {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }).toUpperCase()}
