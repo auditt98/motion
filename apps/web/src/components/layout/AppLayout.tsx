@@ -21,6 +21,7 @@ import {
   Tooltip,
 } from "@weave-design-system/react";
 import { MotionSidebarContent } from "../workspace/MotionSidebar";
+import { Feather } from "../shared/icons";
 import { DrawerOverlay } from "../shared/DrawerOverlay";
 import { CommandPalette } from "../workspace/CommandPalette";
 import { Dashboard } from "../workspace/Dashboard";
@@ -499,8 +500,11 @@ export function AppLayout({ user, onSignOut, themeState }: AppLayoutProps) {
                 path="*"
                 element={
                   loading ? (
-                    <div className="flex-1 flex items-center justify-center" style={{ color: "var(--color-textSecondary)" }}>
-                      <p>Loading workspace...</p>
+                    <div className="flex-1 flex flex-col items-center justify-center gap-3">
+                      <Feather size={28} className="animate-pulse" style={{ color: "var(--color-rust)" }} />
+                      <p style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 500, color: "var(--color-textPrimary)" }}>
+                        Loading your workspace…
+                      </p>
                     </div>
                   ) : (
                     <Dashboard

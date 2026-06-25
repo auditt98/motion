@@ -264,10 +264,13 @@ function SharePopover({
   const isRestricted = permissions?.is_restricted ?? false;
 
   return (
-    <div className={inline ? "w-full" : "absolute right-0 top-full mt-2 w-96 bg-theme border border-theme rounded-lg shadow-lg z-50 max-h-[80vh] overflow-y-auto"}>
+    <div
+      className={inline ? "w-full" : "absolute right-0 top-full mt-2 w-96 border border-theme rounded-xl z-50 max-h-[80vh] overflow-y-auto"}
+      style={inline ? undefined : { background: "var(--color-surface)", boxShadow: "var(--shadow-3)" }}
+    >
       <div className="p-4">
         {/* Invite people */}
-        <h3 className="text-sm font-medium text-theme-primary mb-3">
+        <h3 className="text-sm font-semibold text-theme-primary mb-3" style={{ fontFamily: "var(--font-display)", fontWeight: 600 }}>
           Invite people
         </h3>
 
@@ -283,8 +286,8 @@ function SharePopover({
           <button
             type="submit"
             disabled={sending || !email.trim()}
-            className="w-full py-1.5 rounded-lg text-sm disabled:opacity-50"
-            style={{ background: "var(--color-text-primary)", color: "var(--color-bg)" }}
+            className="w-full py-1.5 rounded-lg text-sm font-semibold disabled:opacity-50"
+            style={{ background: "var(--color-rust)", color: "var(--color-white)" }}
           >
             {sent ? "Sent!" : sending ? "Sending..." : "Send invite"}
           </button>
