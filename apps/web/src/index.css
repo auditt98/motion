@@ -6,42 +6,48 @@
 
 /* ──────────────────── Dark theme ──────────────────── */
 [data-theme="dark"] {
-  /* Neutrals */
-  --color-bg: #1A1917;
-  --color-surface: #252320;
-  --color-border: #3D3A35;
-  --color-text-primary: #E8E4DF;
-  --color-text-secondary: #9C958B;
+  /* Neutrals (warm dark) */
+  --color-bg: #1F1B16;
+  --color-surface: #2A2520;
+  --color-border: #3D362E;
+  --color-text-primary: #ECE5D8;
+  --color-text-secondary: #A89E8E;
   --color-white: #FFFFFF;
 
   /* Primary (Rust) */
   --color-rust: #D4764E;
-  --color-rust-light: #3D2A1F;
+  --color-rust-light: #3A2A1F;
   --color-rust-dark: #E8976E;
 
   /* Secondary (Forest) */
-  --color-forest: #5E9B8A;
-  --color-forest-light: #1F332D;
+  --color-forest: #7FA083;
+  --color-forest-light: #243329;
+
+  /* Accents */
+  --color-gold: #DAB05A;
+  --color-gold-light: #332C1A;
+  --color-teal: #5BA39E;
+  --color-teal-light: #1A2D2B;
 
   /* Semantic */
-  --color-success: #7AB389;
-  --color-success-light: #1F2D22;
-  --color-warning: #D4AD52;
-  --color-warning-light: #332D1A;
-  --color-error: #D46B5E;
-  --color-error-light: #331F1C;
-  --color-info: #8FA0B2;
-  --color-info-light: #1F252D;
+  --color-success: #7FB07F;
+  --color-success-light: #1F2D1F;
+  --color-warning: #DAB05A;
+  --color-warning-light: #332C1A;
+  --color-error: #D4675A;
+  --color-error-light: #331E1A;
+  --color-info: #5BA39E;
+  --color-info-light: #1A2D2B;
 
   /* Delight */
   --color-saffron: #E0A44E;
   --color-saffron-light: #332A1A;
 
   /* Shadows (stronger for dark backgrounds) */
-  --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.2);
-  --shadow-2: 0 4px 12px rgba(0, 0, 0, 0.3);
-  --shadow-3: 0 8px 24px rgba(0, 0, 0, 0.4);
-  --shadow-4: 0 16px 48px rgba(0, 0, 0, 0.5);
+  --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.4);
+  --shadow-3: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --shadow-4: 0 20px 50px rgba(0, 0, 0, 0.6);
 
   /* camelCase aliases (app code uses these with hex fallbacks) */
   --color-textPrimary: var(--color-text-primary);
@@ -49,56 +55,120 @@
   --color-rustLight: var(--color-rust-light);
   --color-gray-400: var(--color-text-secondary);
 
-  /* Editor-specific */
-  --color-code-block-bg: #0D0D0D;
-  --color-inline-code-bg: #2A2826;
-  --color-callout-info-bg: #1A2332;
-  --color-callout-info-border: #60a5fa;
-  --color-callout-warning-bg: #2D2A1A;
-  --color-callout-warning-border: #facc15;
-  --color-callout-error-bg: #2D1A1A;
-  --color-callout-error-border: #f87171;
-  --color-callout-success-bg: #1A2D1E;
-  --color-callout-success-border: #4ade80;
+  /* Editor-specific (warm) */
+  --color-code-block-bg: #15120E;
+  --color-inline-code-bg: #2E2823;
+  --color-callout-info-bg: #152A28;
+  --color-callout-info-border: #5BA39E;
+  --color-callout-warning-bg: #2C2616;
+  --color-callout-warning-border: #DAB05A;
+  --color-callout-error-bg: #2C1A16;
+  --color-callout-error-border: #D4675A;
+  --color-callout-success-bg: #1A2A1A;
+  --color-callout-success-border: #7FB07F;
   --color-overlay: rgba(255, 255, 255, 0.03);
   --color-overlay-stronger: rgba(255, 255, 255, 0.05);
-  --color-popup-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --color-popup-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 
   color-scheme: dark;
 }
 
-/* Light-mode editor variable defaults */
+/* ──────────────────── Light theme (warm editorial — default) ──────────────────── */
 :root {
-  --color-code-block-bg: #111827;
-  --color-inline-code-bg: #f3f4f6;
-  --color-callout-info-bg: #eff6ff;
-  --color-callout-info-border: #60a5fa;
-  --color-callout-warning-bg: #fefce8;
-  --color-callout-warning-border: #facc15;
-  --color-callout-error-bg: #fef2f2;
-  --color-callout-error-border: #f87171;
-  --color-callout-success-bg: #f0fdf4;
-  --color-callout-success-border: #4ade80;
-  --color-overlay: rgba(0, 0, 0, 0.03);
-  --color-overlay-stronger: rgba(0, 0, 0, 0.05);
-  --color-popup-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  /* Fonts */
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-ui: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+
+  /* Neutrals (warm parchment) */
+  --color-bg: #F6F2EA;
+  --color-surface: #FBF9F3;
+  --color-border: #E5DDCD;
+  --color-text-primary: #221E18;
+  --color-text-secondary: #6E6557;
+  --color-white: #FFFFFF;
+
+  /* Primary (Rust) */
+  --color-rust: #BB5530;
+  --color-rust-light: #F0DCCE;
+  --color-rust-dark: #9E4527;
+
+  /* Secondary (Forest) */
+  --color-forest: #43604C;
+  --color-forest-light: #DCE6DC;
+
+  /* Accents */
+  --color-gold: #C79248;
+  --color-gold-light: #F1E4C9;
+  --color-teal: #2E6E6A;
+  --color-teal-light: #D3E4E1;
+
+  /* Semantic */
+  --color-success: #4C7A50;
+  --color-success-light: #DDEBDD;
+  --color-warning: #C79248;
+  --color-warning-light: #F1E4C9;
+  --color-error: #B23A2F;
+  --color-error-light: #F0D8CF;
+  --color-info: #2E6E6A;
+  --color-info-light: #D3E4E1;
+
+  /* Delight */
+  --color-saffron: #D8A24A;
+  --color-saffron-light: #F0E3C9;
+
+  /* Shadows (warm, soft) */
+  --shadow-1: 0 1px 3px rgba(34, 30, 24, 0.08);
+  --shadow-2: 0 4px 14px rgba(34, 30, 24, 0.10);
+  --shadow-3: 0 10px 30px rgba(34, 30, 24, 0.12);
+  --shadow-4: 0 20px 50px rgba(34, 30, 24, 0.16);
+
+  /* camelCase aliases (app code uses these with hex fallbacks) */
+  --color-textPrimary: var(--color-text-primary);
+  --color-textSecondary: var(--color-text-secondary);
+  --color-rustLight: var(--color-rust-light);
+  --color-gray-400: var(--color-text-secondary);
+
+  /* Editor-specific (warm) */
+  --color-code-block-bg: #2A2420;
+  --color-inline-code-bg: #F0E7DA;
+  --color-callout-info-bg: #E3EFEE;
+  --color-callout-info-border: #2E6E6A;
+  --color-callout-warning-bg: #F5EDD8;
+  --color-callout-warning-border: #C79248;
+  --color-callout-error-bg: #F4E0D9;
+  --color-callout-error-border: #B23A2F;
+  --color-callout-success-bg: #E2EEE2;
+  --color-callout-success-border: #4C7A50;
+  --color-overlay: rgba(34, 30, 24, 0.03);
+  --color-overlay-stronger: rgba(34, 30, 24, 0.05);
+  --color-popup-shadow: 0 6px 20px rgba(34, 30, 24, 0.12);
+
+  color-scheme: light;
 }
 
-/* Re-apply dark overrides after :root to ensure they win */
+/* App-wide UI font (Geist); display serif (Fraunces) + mono available via vars */
+body {
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Re-apply dark editor overrides after :root to ensure they win */
 [data-theme="dark"] {
-  --color-code-block-bg: #0D0D0D;
-  --color-inline-code-bg: #2A2826;
-  --color-callout-info-bg: #1A2332;
-  --color-callout-info-border: #60a5fa;
-  --color-callout-warning-bg: #2D2A1A;
-  --color-callout-warning-border: #facc15;
-  --color-callout-error-bg: #2D1A1A;
-  --color-callout-error-border: #f87171;
-  --color-callout-success-bg: #1A2D1E;
-  --color-callout-success-border: #4ade80;
+  --color-code-block-bg: #15120E;
+  --color-inline-code-bg: #2E2823;
+  --color-callout-info-bg: #152A28;
+  --color-callout-info-border: #5BA39E;
+  --color-callout-warning-bg: #2C2616;
+  --color-callout-warning-border: #DAB05A;
+  --color-callout-error-bg: #2C1A16;
+  --color-callout-error-border: #D4675A;
+  --color-callout-success-bg: #1A2A1A;
+  --color-callout-success-border: #7FB07F;
   --color-overlay: rgba(255, 255, 255, 0.03);
   --color-overlay-stronger: rgba(255, 255, 255, 0.05);
-  --color-popup-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --color-popup-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
 /* Dark mode: collaboration selections need screen blend instead of multiply */
