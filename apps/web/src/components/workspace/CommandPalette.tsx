@@ -181,6 +181,7 @@ export function CommandPalette({
           <kbd
             className="hidden sm:inline-block px-1.5 py-0.5 text-xs rounded"
             style={{
+              fontFamily: "var(--font-mono)",
               color: "var(--color-textSecondary)",
               background: "var(--color-bg)",
               border: "1px solid var(--color-border)",
@@ -221,7 +222,8 @@ export function CommandPalette({
                   onMouseEnter={() => setSelectedIndex(index)}
                   className="flex flex-col gap-0.5 w-full px-4 py-2 text-left text-sm transition-colors"
                   style={{
-                    background: index === selectedIndex ? "var(--color-bg)" : "transparent",
+                    background: index === selectedIndex ? "var(--color-rustLight)" : "transparent",
+                    boxShadow: index === selectedIndex ? "inset 2px 0 0 var(--color-rust)" : undefined,
                     color: index === selectedIndex ? "var(--color-textPrimary)" : "var(--color-textSecondary)",
                   }}
                 >
@@ -263,13 +265,13 @@ export function CommandPalette({
           style={{ borderTop: "1px solid var(--color-border)", color: "var(--color-textSecondary)" }}
         >
           <span>
-            <kbd className="px-1 py-0.5 rounded" style={{ background: "var(--color-bg)", border: "1px solid var(--color-border)" }}>↑↓</kbd> navigate
+            <kbd className="px-1 py-0.5 rounded" style={{ fontFamily: "var(--font-mono)", background: "var(--color-bg)", border: "1px solid var(--color-border)" }}>↑↓</kbd> navigate
           </span>
           <span>
-            <kbd className="px-1 py-0.5 rounded" style={{ background: "var(--color-bg)", border: "1px solid var(--color-border)" }}>↵</kbd> open
+            <kbd className="px-1 py-0.5 rounded" style={{ fontFamily: "var(--font-mono)", background: "var(--color-bg)", border: "1px solid var(--color-border)" }}>↵</kbd> open
           </span>
           <span>
-            <kbd className="px-1 py-0.5 rounded" style={{ background: "var(--color-bg)", border: "1px solid var(--color-border)" }}>esc</kbd> close
+            <kbd className="px-1 py-0.5 rounded" style={{ fontFamily: "var(--font-mono)", background: "var(--color-bg)", border: "1px solid var(--color-border)" }}>esc</kbd> close
           </span>
         </div>
       </div>
