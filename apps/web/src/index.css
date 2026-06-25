@@ -5,10 +5,11 @@
 @source "../node_modules/@weave-design-system/react/dist";
 
 /* ──────────────────── Dark theme ──────────────────── */
-[data-theme="dark"] {
+:root[data-theme="dark"] {
   /* Neutrals (warm dark) */
   --color-bg: #1F1B16;
   --color-surface: #2A2520;
+  --color-paper: #232019;
   --color-border: #3D362E;
   --color-text-primary: #ECE5D8;
   --color-text-secondary: #A89E8E;
@@ -85,6 +86,7 @@
   /* Neutrals (warm parchment) */
   --color-bg: #F6F2EA;
   --color-surface: #FBF9F3;
+  --color-paper: #FFFFFF;
   --color-border: #E5DDCD;
   --color-text-primary: #221E18;
   --color-text-secondary: #6E6557;
@@ -159,7 +161,7 @@ body {
 }
 
 /* Re-apply dark editor overrides after :root to ensure they win */
-[data-theme="dark"] {
+:root[data-theme="dark"] {
   --color-code-block-bg: #15120E;
   --color-inline-code-bg: #2E2823;
   --color-callout-info-bg: #152A28;
@@ -185,6 +187,7 @@ body {
 .tiptap {
   outline: none;
   min-height: 100%;
+  color: var(--color-textPrimary);
 }
 
 .tiptap p.is-editor-empty:first-child::before {

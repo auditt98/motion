@@ -584,7 +584,10 @@ function EditorPageInner({
 
         {/* Main editor pane */}
         <div ref={editorScrollRef} className="flex-1 overflow-y-auto bg-theme">
-          <div className={isMobileOrTablet ? "px-4 py-6" : "max-w-3xl mx-auto px-8 py-12"}>
+          <div
+            className={isMobileOrTablet ? "px-4 py-6" : ""}
+            style={isMobileOrTablet ? undefined : { maxWidth: 880, margin: "32px auto 64px", background: "var(--color-paper)", border: "1px solid var(--color-border)", borderRadius: 14, boxShadow: "var(--shadow-2)", padding: "56px 72px" }}
+          >
             {idbSynced ? (
               <>
                 <Editor
