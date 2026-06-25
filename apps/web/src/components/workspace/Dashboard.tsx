@@ -113,6 +113,51 @@ function DroppableFolderCard({ folder, count, onClick }: { folder: FolderItem; c
   );
 }
 
+// --- Quick-start tile (Pencil dashboard) ---
+
+function QuickTile({
+  color,
+  title,
+  subtitle,
+  icon,
+  onClick,
+}: {
+  color: string;
+  title: string;
+  subtitle: string;
+  icon: React.ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex flex-col text-left transition-all hover:-translate-y-0.5"
+      style={{
+        padding: 16,
+        borderRadius: 12,
+        border: "1px solid var(--color-border)",
+        background: "var(--color-surface)",
+        boxShadow: "var(--shadow-1)",
+      }}
+    >
+      <span
+        className="flex items-center justify-center mb-3"
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: 9,
+          background: `color-mix(in srgb, ${color} 14%, var(--color-surface))`,
+          color,
+        }}
+      >
+        {icon}
+      </span>
+      <span className="text-sm font-semibold" style={{ color: "var(--color-textPrimary)" }}>{title}</span>
+      <span className="text-xs mt-0.5" style={{ color: "var(--color-textSecondary)" }}>{subtitle}</span>
+    </button>
+  );
+}
+
 // --- Main Dashboard ---
 
 export function Dashboard({
@@ -210,37 +255,52 @@ export function Dashboard({
     <div className="flex-1 overflow-y-auto" style={{ background: "var(--color-bg)" }}>
       <div className="max-w-5xl mx-auto px-4 py-6 sm:px-8 sm:py-12">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8 sm:mb-10">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-7">
           <div>
-            <h1 className="text-xl sm:text-2xl font-semibold" style={{ color: "var(--color-textPrimary)" }}>
+            <div className="mb-1.5" style={{ fontFamily: "var(--font-mono)", fontSize: 11.5, fontWeight: 600, letterSpacing: 1.2, color: "var(--color-textSecondary)" }}>
+              {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }).toUpperCase()}
+            </div>
+            <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 500, fontSize: 32, lineHeight: 1.1, color: "var(--color-textPrimary)" }}>
               {getGreeting()}, {displayName}
             </h1>
-            <p className="text-sm mt-1" style={{ color: "var(--color-textSecondary)" }}>
-              {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
-            </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="primary" size="sm" onClick={handleCreatePage}
-              leftIcon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>}
-            >
-              New page
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleCreateDatabase}
-              leftIcon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>}
-            >
-              New database
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => onCreateFolder()}
-              leftIcon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>}
-            >
-              New folder
-            </Button>
-            <Button variant="outline" size="sm" onClick={onImport}
-              leftIcon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>}
-            >
-              Import
-            </Button>
-          </div>
+          <Button variant="primary" size="sm" onClick={handleCreatePage}
+            leftIcon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>}
+          >
+            New page
+          </Button>
+        </div>
+
+        {/* Quick start */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-9">
+          <QuickTile
+            color="var(--color-rust)"
+            title="New page"
+            subtitle="Start a blank document"
+            onClick={handleCreatePage}
+            icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>}
+          />
+          <QuickTile
+            color="var(--color-teal)"
+            title="New database"
+            subtitle="Structured tables & views"
+            onClick={handleCreateDatabase}
+            icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M3 5v14a9 3 0 0 0 18 0V5" /><path d="M3 12a9 3 0 0 0 18 0" /></svg>}
+          />
+          <QuickTile
+            color="var(--color-gold)"
+            title="New folder"
+            subtitle="Group related pages"
+            onClick={() => onCreateFolder()}
+            icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>}
+          />
+          <QuickTile
+            color="var(--color-forest)"
+            title="Import"
+            subtitle="Markdown, HTML, or docs"
+            onClick={onImport}
+            icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>}
+          />
         </div>
 
         {/* Recently visited */}
