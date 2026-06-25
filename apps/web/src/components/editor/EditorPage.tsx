@@ -193,7 +193,7 @@ function EditorPageInner({
   // Table of contents
   const [showToc, setShowToc] = useState(() => {
     try {
-      const stored = localStorage.getItem("motion-toc-visible");
+      const stored = localStorage.getItem("motion-toc-visible-v2");
       return stored === null ? true : stored === "true";
     } catch {
       return true;
@@ -445,7 +445,7 @@ function EditorPageInner({
   const handleToggleToc = useCallback(() => {
     setShowToc((v) => {
       const next = !v;
-      try { localStorage.setItem("motion-toc-visible", String(next)); } catch { /* noop */ }
+      try { localStorage.setItem("motion-toc-visible-v2", String(next)); } catch { /* noop */ }
       return next;
     });
   }, []);
@@ -576,17 +576,17 @@ function EditorPageInner({
               onEntryClick={scrollToTocEntry}
               onClose={() => {
                 setShowToc(false);
-                try { localStorage.setItem("motion-toc-visible", "false"); } catch { /* noop */ }
+                try { localStorage.setItem("motion-toc-visible-v2", "false"); } catch { /* noop */ }
               }}
             />
           </div>
         )}
 
-        {/* Main editor pane */}
-        <div ref={editorScrollRef} className="flex-1 overflow-y-auto bg-theme">
+        {/* Main editor pane — white "doc canvas" that fills the space (the TOC rail sits against it) */}
+        <div ref={editorScrollRef} className="flex-1 overflow-y-auto" style={{ background: "var(--color-paper)" }}>
           <div
-            className={isMobileOrTablet ? "px-4 py-6" : ""}
-            style={isMobileOrTablet ? undefined : { maxWidth: 880, margin: "32px auto 64px", background: "var(--color-paper)", border: "1px solid var(--color-border)", borderRadius: 14, boxShadow: "var(--shadow-2)", padding: "56px 72px" }}
+            className={isMobileOrTablet ? "px-5 py-8" : ""}
+            style={isMobileOrTablet ? undefined : { maxWidth: 820, margin: "0 auto", padding: "64px 56px 96px" }}
           >
             {idbSynced ? (
               <>

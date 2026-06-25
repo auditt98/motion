@@ -829,11 +829,11 @@ body {
 }
 
 .toc-sidebar-wrapper.open {
-  width: 240px;
+  width: 220px;
 }
 
 .toc-sidebar {
-  width: 240px;
+  width: 220px;
   flex-shrink: 0;
   background: var(--color-bg);
   display: flex;
