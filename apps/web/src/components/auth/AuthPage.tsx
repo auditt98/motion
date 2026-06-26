@@ -1,7 +1,7 @@
 import { useState, type CSSProperties } from "react";
 import { supabase } from "../../lib/supabase";
 import { useBreakpoint } from "../../hooks/useBreakpoint";
-import { Feather, UsersRound, Sparkles, GitBranch, GoogleLogo, GitHubLogo } from "../shared/icons";
+import { Feather, UsersRound, Sparkles, GitBranch, GitHubLogo } from "../shared/icons";
 
 interface AuthPageProps {
   onSignIn: (email: string, password: string) => Promise<{ error: unknown }>;
@@ -179,13 +179,6 @@ export function AuthPage({ onSignIn, onSignUp }: AuthPageProps) {
           </p>
 
           <div className="flex flex-col" style={{ gap: 10, paddingTop: 18 }}>
-            <button
-              onClick={() => oauth("google")}
-              className="flex items-center justify-center"
-              style={{ gap: 10, padding: "12px 14px", borderRadius: 8, background: "var(--color-white)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)", fontWeight: 600, fontSize: 14 }}
-            >
-              <GoogleLogo size={18} /> Continue with Google
-            </button>
             <button
               onClick={() => oauth("github")}
               className="flex items-center justify-center"
