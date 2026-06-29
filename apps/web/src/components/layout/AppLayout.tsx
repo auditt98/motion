@@ -26,18 +26,22 @@ import { DrawerOverlay } from "../shared/DrawerOverlay";
 import { CommandPalette } from "../workspace/CommandPalette";
 import { Dashboard } from "../workspace/Dashboard";
 import { EditorPage } from "../editor/EditorPage";
+import { HtmlArtifactPage } from "../editor/HtmlArtifactPage";
 import { DatabasePage } from "../database/DatabasePage";
 import { SettingsPage } from "../workspace/SettingsPage";
 import { ImportModal, type ImportPage } from "../workspace/ImportModal";
 import { useImportStore } from "@/utils/importStore";
 import type { Theme } from "@/hooks/useTheme";
 
-/** Routes to DatabasePage or EditorPage based on page_type */
-function PageRouter({ pages }: { pages: { id: string; page_type: string }[] }) {
+/** Routes to DatabasePage, HtmlArtifactPage, or EditorPage based on page_type */
+function PageRouter({ pages }: { pages: { id: string; page_type: string; title: string }[] }) {
   const { pageId } = useParams<{ pageId: string }>();
   const page = pages.find((p) => p.id === pageId);
   if (page?.page_type === "database") {
     return <DatabasePage />;
+  }
+  if (page?.page_type === "html") {
+    return <HtmlArtifactPage title={page.title} />;
   }
   return <EditorPage />;
 }
@@ -72,6 +76,7 @@ export function AppLayout({ user, onSignOut, themeState }: AppLayoutProps) {
     toggleFavorite,
     movePageToFolder,
     createDatabase,
+    createHtmlArtifact,
     createFolder,
     renameFolder,
     deleteFolder,
@@ -525,6 +530,7 @@ export function AppLayout({ user, onSignOut, themeState }: AppLayoutProps) {
                       membersLoading={membersLoading}
                       onCreatePage={createPage}
                       onCreateDatabase={createDatabase}
+                      onCreateHtmlArtifact={createHtmlArtifact}
                       onCreateFolder={createFolder}
                       onMovePageToFolder={movePageToFolder}
                       onImport={() => setImportModalOpen(true)}

@@ -51,7 +51,7 @@ export interface WorkspaceInviteLink {
   created_at: string;
 }
 
-export type PageType = "document" | "database";
+export type PageType = "document" | "database" | "html";
 
 export interface Page {
   id: string;

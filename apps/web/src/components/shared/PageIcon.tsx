@@ -20,6 +20,26 @@ export function PageIcon({ icon, pageType, size = "md", className = "" }: PageIc
     return <span className={`${text} shrink-0 ${className}`}>{icon}</span>;
   }
 
+  if (pageType === "html") {
+    return (
+      <svg
+        width={svg}
+        height={svg}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={`shrink-0 ${className}`}
+        style={{ color: "var(--color-textSecondary)" }}
+      >
+        <polyline points="16 18 22 12 16 6" />
+        <polyline points="8 6 2 12 8 18" />
+      </svg>
+    );
+  }
+
   if (pageType === "database") {
     return (
       <svg

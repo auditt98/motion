@@ -293,6 +293,14 @@ body {
   box-shadow: 0 0 0 2px var(--color-bg, white), 0 0 0 4px currentColor;
 }
 
+/* HTML artifact — warm code-editor syntax highlight (dark pane) */
+.artifact-code { color: #E8E0D2; }
+.artifact-code .hl-tag { color: #E0826B; }
+.artifact-code .hl-attr { color: #DAB05A; }
+.artifact-code .hl-str { color: #8FBF8A; }
+.artifact-code .hl-comment { color: #7A7163; font-style: italic; }
+.artifact-code .hl-punct { color: #9C9384; }
+
 /* Block-level styles */
 .tiptap h1 { font-family: var(--font-display); font-size: 2em; font-weight: 600; letter-spacing: -0.01em; margin-top: 1.5em; margin-bottom: 0.5em; }
 .tiptap h2 { font-family: var(--font-display); font-size: 1.5em; font-weight: 600; letter-spacing: -0.01em; margin-top: 1.25em; margin-bottom: 0.4em; }

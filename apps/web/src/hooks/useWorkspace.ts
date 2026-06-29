@@ -11,7 +11,7 @@ export interface PageItem {
   folder_id: string | null;
   position: number;
   is_favorite: boolean;
-  page_type: "document" | "database";
+  page_type: "document" | "database" | "html";
   updated_at: string;
   last_edited_by: string | null;
   cover_url: string | null;
@@ -239,6 +239,36 @@ export function useWorkspace(user: User) {
 
       if (error || !data) {
         console.error("Failed to create database:", error);
+        return null;
+      }
+
+      setState((s) => ({ ...s, pages: [...s.pages, data as PageItem] }));
+      return data as PageItem;
+    },
+    [state.workspaceId, state.pages, user.id],
+  );
+
+  const createHtmlArtifact = useCallback(
+    async (title = "Untitled artifact", folderId: string | null = null) => {
+      if (!state.workspaceId) return null;
+
+      const maxPos = state.pages.reduce((max, p) => Math.max(max, p.position), -1);
+
+      const { data, error } = await supabase
+        .from("pages")
+        .insert({
+          workspace_id: state.workspaceId,
+          title,
+          folder_id: folderId,
+          position: maxPos + 1,
+          page_type: "html",
+          created_by: user.id,
+        })
+        .select(PAGE_SELECT)
+        .single();
+
+      if (error || !data) {
+        console.error("Failed to create HTML artifact:", error);
         return null;
       }
 
@@ -693,6 +723,7 @@ export function useWorkspace(user: User) {
     loading: state.loading,
     createPage,
     createDatabase,
+    createHtmlArtifact,
     renamePage,
     deletePage,
     restorePage,
