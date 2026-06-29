@@ -276,6 +276,42 @@ function SharePopover({
           <p className="text-xs mb-3" style={{ color: "var(--color-error)" }}>{error}</p>
         )}
 
+        {/* People with access (read-only; role editing lives in Settings) */}
+        <div className="border-t border-theme pt-3 mb-3">
+          <div className="flex items-center justify-between mb-2">
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, letterSpacing: 1.2, textTransform: "uppercase", color: "var(--color-textTertiary)" }}>
+              People with access
+            </span>
+            <button
+              onClick={() => { onClose(); navigate("/settings"); }}
+              className="text-xs hover:opacity-80"
+              style={{ color: "var(--color-rust)", fontWeight: 600 }}
+            >
+              Manage
+            </button>
+          </div>
+          <div className="space-y-1">
+            {members.length === 0 ? (
+              <p className="text-xs" style={{ color: "var(--color-textTertiary)" }}>Just you so far.</p>
+            ) : (
+              members.slice(0, 8).map((m) => {
+                const name = m.user.display_name || m.user.email.split("@")[0];
+                const roleLabel = m.role === "owner" ? "Owner" : m.role === "admin" ? "Admin" : m.role === "guest" ? "Guest" : "Member";
+                return (
+                  <div key={m.user_id} className="flex items-center gap-2.5 py-1">
+                    <Avatar name={name} src={m.user.avatar_url || undefined} size="sm" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm truncate" style={{ color: "var(--color-textPrimary)" }}>{name}</div>
+                      <div className="text-xs truncate" style={{ color: "var(--color-textSecondary)" }}>{m.user.email}</div>
+                    </div>
+                    <span className="text-xs shrink-0" style={{ color: "var(--color-textSecondary)" }}>{roleLabel}</span>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
         {/* Publish to web */}
         {pageId && (
           <div className="border-t border-theme pt-3 mb-3">
