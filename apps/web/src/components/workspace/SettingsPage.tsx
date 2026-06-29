@@ -21,8 +21,45 @@ import {
   useToast,
 } from "@weave-design-system/react";
 import { ConnectedAgentsCard } from "./ConnectedAgentsCard";
+import { StateView } from "@/components/shared/StateView";
 
 const ROLE_OPTIONS = ["owner", "admin", "member", "guest"] as const;
+
+const SECTIONS = [
+  { id: "profile", label: "Profile" },
+  { id: "general", label: "General" },
+  { id: "members", label: "Members & agents" },
+  { id: "integrations", label: "Integrations" },
+  { id: "billing", label: "Billing" },
+  { id: "audit", label: "Audit log" },
+] as const;
+type SectionId = (typeof SECTIONS)[number]["id"];
+const SECTION_LABELS = Object.fromEntries(SECTIONS.map((s) => [s.id, s.label])) as Record<SectionId, string>;
+
+function SettingsNav({ section, onSelect, onBack }: { section: SectionId; onSelect: (s: SectionId) => void; onBack: () => void }) {
+  return (
+    <nav className="flex flex-col shrink-0" style={{ width: 248, borderRight: "1px solid var(--color-border)", background: "var(--color-surface)", padding: "20px 14px", gap: 3 }}>
+      <button onClick={onBack} className="flex items-center hover:opacity-80" style={{ gap: 6, fontSize: 13, color: "var(--color-textSecondary)", padding: "6px 8px", marginBottom: 6 }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+        Back to workspace
+      </button>
+      <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, letterSpacing: 1.2, color: "var(--color-textTertiary)", padding: "4px 8px 6px" }}>SETTINGS</div>
+      {SECTIONS.map((s) => {
+        const active = section === s.id;
+        return (
+          <button
+            key={s.id}
+            onClick={() => onSelect(s.id)}
+            className="text-left transition-colors"
+            style={{ padding: "8px 10px", borderRadius: 8, fontSize: 14, fontWeight: active ? 600 : 500, background: active ? "var(--color-rustLight)" : "transparent", color: active ? "var(--color-rust)" : "var(--color-textPrimary)" }}
+          >
+            {s.label}
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
 
 export function SettingsPage() {
   const { workspaceId, currentUserRole, workspaceName, workspaces, renameWorkspace, deleteWorkspace } = useWorkspaceContext();
@@ -43,6 +80,7 @@ export function SettingsPage() {
   const isAdmin = currentUserRole === "owner" || currentUserRole === "admin";
   const isOwner = currentUserRole === "owner";
 
+  const [section, setSection] = useState<SectionId>("members");
   const [profileName, setProfileName] = useState("");
   const [profileNameLoaded, setProfileNameLoaded] = useState(false);
   useEffect(() => {
@@ -108,10 +146,14 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto" style={{ background: "var(--color-bg)" }}>
+    <div className="flex-1 flex overflow-hidden" style={{ background: "var(--color-bg)" }}>
+      <SettingsNav section={section} onSelect={setSection} onBack={() => navigate("/")} />
+      <div className="flex-1 overflow-y-auto">
       <div className="max-w-2xl mx-auto px-8 py-12">
-        <h1 className="mb-8" style={{ fontFamily: "var(--font-display)", fontWeight: 500, fontSize: 30, color: "var(--color-textPrimary)" }}>Settings</h1>
+        <h1 className="mb-8" style={{ fontFamily: "var(--font-display)", fontWeight: 500, fontSize: 30, color: "var(--color-textPrimary)" }}>{SECTION_LABELS[section]}</h1>
 
+        {section === "profile" && (
+        <>
         {/* Account */}
         <Card className="mb-6">
           <Card.Header>
@@ -173,9 +215,11 @@ export function SettingsPage() {
             )}
           </Card.Content>
         </Card>
+        </>
+        )}
 
         {/* Workspace name */}
-        {isAdmin && (
+        {section === "general" && isAdmin && (
           <Card className="mb-6">
             <Card.Header>
               <h2 className="text-lg" style={{ fontFamily: "var(--font-display)", fontWeight: 500, color: "var(--color-textPrimary)" }}>Workspace</h2>
@@ -208,6 +252,8 @@ export function SettingsPage() {
           </Card>
         )}
 
+        {section === "members" && (
+        <>
         {/* Members */}
         <Card className="mb-6">
           <Card.Header>
@@ -508,8 +554,41 @@ export function SettingsPage() {
           </Card>
         )}
 
+        </>
+        )}
+
+        {/* Integrations */}
+        {section === "integrations" && (
+          <StateView
+            tone="gold"
+            icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>}
+            title="No integrations yet"
+            description="Connectors like GitHub sync will appear here once available."
+          />
+        )}
+
+        {/* Billing */}
+        {section === "billing" && (
+          <StateView
+            tone="teal"
+            icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20" /></svg>}
+            title="Billing isn't set up"
+            description="This workspace is on the free plan. Billing controls will live here."
+          />
+        )}
+
+        {/* Audit log */}
+        {section === "audit" && (
+          <StateView
+            tone="forest"
+            icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="9" y1="13" x2="15" y2="13" /><line x1="9" y1="17" x2="13" y2="17" /></svg>}
+            title="No audit events yet"
+            description="A record of workspace activity will appear here when audit logging is enabled."
+          />
+        )}
+
         {/* Danger zone */}
-        {isOwner && (
+        {section === "general" && isOwner && (
           <Card>
             <Card.Header>
               <h2 className="text-lg font-medium" style={{ color: "var(--color-error)" }}>Danger zone</h2>
@@ -545,6 +624,7 @@ export function SettingsPage() {
             </Card.Content>
           </Card>
         )}
+      </div>
       </div>
     </div>
   );
