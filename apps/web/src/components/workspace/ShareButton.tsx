@@ -107,7 +107,9 @@ function SharePopover({
     removeAccess,
     updateAccessLevel,
   } = usePagePermissions(pageId, workspaceId);
-  const { members } = useWorkspaceMembers(workspaceId);
+  const { members, updateRole } = useWorkspaceMembers(workspaceId);
+  const { currentUserRole } = useWorkspaceContext();
+  const isAdmin = currentUserRole === "owner" || currentUserRole === "admin";
 
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
@@ -276,7 +278,7 @@ function SharePopover({
           <p className="text-xs mb-3" style={{ color: "var(--color-error)" }}>{error}</p>
         )}
 
-        {/* People with access (read-only; role editing lives in Settings) */}
+        {/* People with access — editable role per row for admins (reuses Settings' updateRole) */}
         <div className="border-t border-theme pt-3 mb-3">
           <div className="flex items-center justify-between mb-2">
             <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, letterSpacing: 1.2, textTransform: "uppercase", color: "var(--color-textTertiary)" }}>
@@ -304,7 +306,20 @@ function SharePopover({
                       <div className="text-sm truncate" style={{ color: "var(--color-textPrimary)" }}>{name}</div>
                       <div className="text-xs truncate" style={{ color: "var(--color-textSecondary)" }}>{m.user.email}</div>
                     </div>
-                    <span className="text-xs shrink-0" style={{ color: "var(--color-textSecondary)" }}>{roleLabel}</span>
+                    {isAdmin && m.role !== "owner" ? (
+                      <select
+                        value={m.role}
+                        onChange={(e) => updateRole(m.id, e.target.value as "admin" | "member" | "guest")}
+                        className="text-xs px-1.5 py-1 border rounded shrink-0"
+                        style={{ borderColor: "var(--color-border)", background: "var(--color-surface)", color: "var(--color-textPrimary)" }}
+                      >
+                        <option value="admin">Admin</option>
+                        <option value="member">Member</option>
+                        <option value="guest">Guest</option>
+                      </select>
+                    ) : (
+                      <span className="text-xs shrink-0" style={{ color: "var(--color-textSecondary)" }}>{roleLabel}</span>
+                    )}
                   </div>
                 );
               })
