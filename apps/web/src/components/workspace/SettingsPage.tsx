@@ -376,7 +376,7 @@ export function SettingsPage() {
                       <Table.Row key={link.id}>
                         <Table.Cell>
                           <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full ${link.is_active ? "bg-green-400" : "bg-theme-surface"}`} />
+                            <div className="w-2 h-2 rounded-full" style={{ background: link.is_active ? "var(--color-success)" : "var(--color-border)" }} />
                             <Badge variant={link.is_active ? "success" : "secondary"}>{link.role}</Badge>
                             <span className="text-xs" style={{ color: "var(--color-textSecondary)" }}>
                               {link.use_count} use{link.use_count !== 1 ? "s" : ""}

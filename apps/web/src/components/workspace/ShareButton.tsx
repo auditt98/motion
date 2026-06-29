@@ -294,7 +294,7 @@ function SharePopover({
         </form>
 
         {error && (
-          <p className="text-xs text-red-600 mb-3">{error}</p>
+          <p className="text-xs mb-3" style={{ color: "var(--color-error)" }}>{error}</p>
         )}
 
         {/* Publish to web */}
