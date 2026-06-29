@@ -110,12 +110,12 @@ export function SettingsPage() {
   return (
     <div className="flex-1 overflow-y-auto" style={{ background: "var(--color-bg)" }}>
       <div className="max-w-2xl mx-auto px-8 py-12">
-        <h1 className="text-2xl font-semibold mb-8" style={{ color: "var(--color-textPrimary)" }}>Settings</h1>
+        <h1 className="mb-8" style={{ fontFamily: "var(--font-display)", fontWeight: 500, fontSize: 30, color: "var(--color-textPrimary)" }}>Settings</h1>
 
         {/* Account */}
         <Card className="mb-6">
           <Card.Header>
-            <h2 className="text-lg font-medium" style={{ color: "var(--color-textPrimary)" }}>Account</h2>
+            <h2 className="text-lg" style={{ fontFamily: "var(--font-display)", fontWeight: 500, color: "var(--color-textPrimary)" }}>Account</h2>
           </Card.Header>
           <Card.Content>
             <div className="flex gap-2">
@@ -178,7 +178,7 @@ export function SettingsPage() {
         {isAdmin && (
           <Card className="mb-6">
             <Card.Header>
-              <h2 className="text-lg font-medium" style={{ color: "var(--color-textPrimary)" }}>Workspace</h2>
+              <h2 className="text-lg" style={{ fontFamily: "var(--font-display)", fontWeight: 500, color: "var(--color-textPrimary)" }}>Workspace</h2>
             </Card.Header>
             <Card.Content>
               <div className="flex gap-2">
@@ -212,7 +212,7 @@ export function SettingsPage() {
         <Card className="mb-6">
           <Card.Header>
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-medium" style={{ color: "var(--color-textPrimary)" }}>Members</h2>
+              <h2 className="text-lg" style={{ fontFamily: "var(--font-display)", fontWeight: 500, color: "var(--color-textPrimary)" }}>Members</h2>
               <Badge variant="secondary">{members.length}</Badge>
             </div>
           </Card.Header>
@@ -292,7 +292,7 @@ export function SettingsPage() {
         {isAdmin && (
           <Card className="mb-6">
             <Card.Header>
-              <h2 className="text-lg font-medium" style={{ color: "var(--color-textPrimary)" }}>Invite by email</h2>
+              <h2 className="text-lg" style={{ fontFamily: "var(--font-display)", fontWeight: 500, color: "var(--color-textPrimary)" }}>Invite by email</h2>
             </Card.Header>
             <Card.Content>
               <form onSubmit={handleSendInvite} className="flex gap-2">
@@ -360,7 +360,7 @@ export function SettingsPage() {
           <Card className="mb-6">
             <Card.Header>
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-medium" style={{ color: "var(--color-textPrimary)" }}>Invite links</h2>
+                <h2 className="text-lg" style={{ fontFamily: "var(--font-display)", fontWeight: 500, color: "var(--color-textPrimary)" }}>Invite links</h2>
                 <Button variant="outline" size="sm" onClick={handleCreateLink}>Create link</Button>
               </div>
             </Card.Header>
@@ -415,7 +415,7 @@ export function SettingsPage() {
             <Card.Header>
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-medium" style={{ color: "var(--color-textPrimary)" }}>Agent tokens</h2>
+                  <h2 className="text-lg" style={{ fontFamily: "var(--font-display)", fontWeight: 500, color: "var(--color-textPrimary)" }}>Agent tokens</h2>
                   <p className="text-xs mt-1" style={{ color: "var(--color-textSecondary)" }}>
                     Tokens grant full workspace access to AI agents.
                   </p>
