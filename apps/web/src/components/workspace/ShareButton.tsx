@@ -107,9 +107,7 @@ function SharePopover({
     removeAccess,
     updateAccessLevel,
   } = usePagePermissions(pageId, workspaceId);
-  const { members, updateRole } = useWorkspaceMembers(workspaceId);
-  const { currentUserRole } = useWorkspaceContext();
-  const isAdmin = currentUserRole === "owner" || currentUserRole === "admin";
+  const { members } = useWorkspaceMembers(workspaceId);
 
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
@@ -278,7 +276,7 @@ function SharePopover({
           <p className="text-xs mb-3" style={{ color: "var(--color-error)" }}>{error}</p>
         )}
 
-        {/* People with access — editable role per row for admins (reuses Settings' updateRole) */}
+        {/* People with access — workspace members (manage workspace roles in Settings) */}
         <div className="border-t border-theme pt-3 mb-3">
           <div className="flex items-center justify-between mb-2">
             <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, letterSpacing: 1.2, textTransform: "uppercase", color: "var(--color-textTertiary)" }}>
@@ -306,20 +304,7 @@ function SharePopover({
                       <div className="text-sm truncate" style={{ color: "var(--color-textPrimary)" }}>{name}</div>
                       <div className="text-xs truncate" style={{ color: "var(--color-textSecondary)" }}>{m.user.email}</div>
                     </div>
-                    {isAdmin && m.role !== "owner" ? (
-                      <select
-                        value={m.role}
-                        onChange={(e) => updateRole(m.id, e.target.value as "admin" | "member" | "guest")}
-                        className="text-xs px-1.5 py-1 border rounded shrink-0"
-                        style={{ borderColor: "var(--color-border)", background: "var(--color-surface)", color: "var(--color-textPrimary)" }}
-                      >
-                        <option value="admin">Admin</option>
-                        <option value="member">Member</option>
-                        <option value="guest">Guest</option>
-                      </select>
-                    ) : (
-                      <span className="text-xs shrink-0" style={{ color: "var(--color-textSecondary)" }}>{roleLabel}</span>
-                    )}
+                    <span className="text-xs shrink-0" style={{ color: "var(--color-textSecondary)" }}>{roleLabel}</span>
                   </div>
                 );
               })
@@ -389,8 +374,8 @@ function SharePopover({
                     className="text-xs px-1.5 py-0.5 border border-theme rounded"
                     style={{ background: "var(--color-bg)", color: "var(--color-text-primary)" }}
                   >
-                    <option value="view">View</option>
-                    <option value="comment">Comment</option>
+                    <option value="view">Viewer</option>
+                    <option value="comment">Commenter</option>
                   </select>
                 </div>
               </div>
@@ -475,9 +460,9 @@ function SharePopover({
                         className="text-xs px-1 py-0.5 border border-theme rounded"
                         style={{ background: "var(--color-bg)", color: "var(--color-text-primary)" }}
                       >
-                        <option value="view">View</option>
-                        <option value="comment">Comment</option>
-                        <option value="edit">Edit</option>
+                        <option value="view">Viewer</option>
+                        <option value="comment">Commenter</option>
+                        <option value="edit">Editor</option>
                       </select>
                       <Tooltip content="Remove access">
                         <button
