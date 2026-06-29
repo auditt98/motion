@@ -1,8 +1,7 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { Button, Avatar, Tooltip, Modal } from "@weave-design-system/react";
 import { useWorkspaceContext } from "@/contexts/WorkspaceContext";
-import { useBreakpoint } from "@/hooks/useBreakpoint";
 import { useInvitations } from "@/hooks/useInvitations";
 import { useInviteLinks } from "@/hooks/useInviteLinks";
 import { usePagePermissions } from "@/hooks/usePagePermissions";
@@ -17,24 +16,10 @@ function isValidSlug(slug: string): boolean {
 
 export function ShareButton({ pageId }: { pageId?: string }) {
   const { workspaceId } = useWorkspaceContext();
-  const { isMobile } = useBreakpoint();
   const [open, setOpen] = useState(false);
-  const popoverRef = useRef<HTMLDivElement>(null);
-
-  // Close on click outside (desktop only)
-  useEffect(() => {
-    if (!open || isMobile) return;
-    function handleClick(e: MouseEvent) {
-      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [open, isMobile]);
 
   return (
-    <div className="relative" ref={popoverRef}>
+    <div className="relative">
       <Button
         variant="primary"
         size="sm"
@@ -48,7 +33,7 @@ export function ShareButton({ pageId }: { pageId?: string }) {
         Share
       </Button>
 
-      {open && isMobile ? (
+      {open && (
         <Modal open={open} onClose={() => setOpen(false)}>
           <Modal.Header>Share</Modal.Header>
           <Modal.Body>
@@ -60,13 +45,7 @@ export function ShareButton({ pageId }: { pageId?: string }) {
             />
           </Modal.Body>
         </Modal>
-      ) : open ? (
-        <SharePopover
-          workspaceId={workspaceId}
-          pageId={pageId}
-          onClose={() => setOpen(false)}
-        />
-      ) : null}
+      )}
     </div>
   );
 }
