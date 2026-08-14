@@ -1,15 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
+import { requireEnv } from "./env";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = requireEnv("VITE_SUPABASE_URL", "http://localhost:54321");
+const supabaseAnonKey = requireEnv("VITE_SUPABASE_ANON_KEY", "placeholder");
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn(
-    "Supabase environment variables not set. Auth and database features will not work.",
-  );
-}
-
-export const supabase = createClient(
-  supabaseUrl || "http://localhost:54321",
-  supabaseAnonKey || "placeholder",
-);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
