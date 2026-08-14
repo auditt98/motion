@@ -1,5 +1,6 @@
 import { useState, type CSSProperties } from "react";
 import { supabase } from "../../lib/supabase";
+import { oauthRedirectTo } from "../../lib/authRedirect";
 import { useBreakpoint } from "../../hooks/useBreakpoint";
 import { Feather, UsersRound, Sparkles, GitBranch, GitHubLogo, GoogleLogo } from "../shared/icons";
 
@@ -37,7 +38,7 @@ export function AuthPage() {
       provider,
       // Return to wherever they started — an invite or agent-consent URL carries
       // params we must not drop.
-      options: { redirectTo: window.location.href },
+      options: { redirectTo: oauthRedirectTo() },
     });
     if (error) {
       setError(error.message);

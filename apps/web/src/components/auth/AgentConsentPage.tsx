@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Button } from "@weave-design-system/react";
 import { useAuth } from "../../hooks/useAuth";
 import { supabase } from "../../lib/supabase";
+import { oauthRedirectTo } from "../../lib/authRedirect";
 import { Feather, Bot, ShieldCheck, GoogleLogo, GitHubLogo } from "../shared/icons";
 
 /**
@@ -70,7 +71,7 @@ export function AgentConsentPage() {
     setError(null);
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: window.location.href },
+      options: { redirectTo: oauthRedirectTo() },
     });
     if (error) {
       setError(error.message);
