@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Button } from "@weave-design-system/react";
 import { useAuth } from "../../hooks/useAuth";
 import { supabase } from "../../lib/supabase";
-import { Feather, Bot, ShieldCheck } from "../shared/icons";
+import { Feather, Bot, ShieldCheck, GoogleLogo, GitHubLogo } from "../shared/icons";
 
 /**
  * OAuth consent screen. The Motion MCP server's /oauth/authorize redirects the
@@ -52,7 +52,7 @@ function useOAuthParams() {
 
 export function AgentConsentPage() {
   const oauth = useOAuthParams();
-  const { user, loading: authLoading, signIn } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [workspaceId, setWorkspaceId] = useState("");
@@ -62,10 +62,21 @@ export function AgentConsentPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Inline sign-in (so the OAuth params in the URL are preserved).
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  // Sign-in returns to this exact URL, so the OAuth params are preserved.
   const [signingIn, setSigningIn] = useState(false);
+
+  async function signInWith(provider: "google" | "github") {
+    setSigningIn(true);
+    setError(null);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: window.location.href },
+    });
+    if (error) {
+      setError(error.message);
+      setSigningIn(false);
+    }
+  }
 
   useEffect(() => {
     if (!user) return;
@@ -221,34 +232,18 @@ export function AgentConsentPage() {
           </p>
         </div>
         {agentIdentity}
-        <input
-          type="email"
-          placeholder="you@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={selectStyle}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={selectStyle}
-        />
         {error && <div style={{ color: "var(--color-rust)", fontSize: 13 }}>{error}</div>}
-        <Button
-          variant="primary"
-          onClick={async () => {
-            setSigningIn(true);
-            setError(null);
-            const result = await signIn(email, password);
-            if (result && (result as { error?: unknown }).error) {
-              setError("Sign in failed. Check your credentials.");
-            }
-            setSigningIn(false);
-          }}
-        >
-          {signingIn ? "Signing in…" : "Sign in"}
+        <Button variant="primary" disabled={signingIn} onClick={() => void signInWith("google")}>
+          <span className="flex items-center justify-center" style={{ gap: 8 }}>
+            <GoogleLogo size={16} />
+            {signingIn ? "Redirecting…" : "Continue with Google"}
+          </span>
+        </Button>
+        <Button variant="ghost" disabled={signingIn} onClick={() => void signInWith("github")}>
+          <span className="flex items-center justify-center" style={{ gap: 8 }}>
+            <GitHubLogo size={16} />
+            Continue with GitHub
+          </span>
         </Button>
       </div>,
     );

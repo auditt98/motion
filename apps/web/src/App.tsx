@@ -8,7 +8,7 @@ import { PublicPageViewer } from "./components/editor/PublicPageViewer";
 import { AgentConsentPage } from "./components/auth/AgentConsentPage";
 
 export function App() {
-  const { user, loading, signIn, signUp, signOut } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const themeState = useTheme();
 
   if (loading) {
@@ -31,10 +31,7 @@ export function App() {
             element={<AppLayout user={user} onSignOut={signOut} themeState={themeState} />}
           />
         ) : (
-          <Route
-            path="/*"
-            element={<AuthPage onSignIn={signIn} onSignUp={signUp} />}
-          />
+          <Route path="/*" element={<AuthPage />} />
         )}
       </Routes>
     </BrowserRouter>

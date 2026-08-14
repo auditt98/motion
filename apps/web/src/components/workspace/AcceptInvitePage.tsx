@@ -7,7 +7,7 @@ import { AuthPage } from "../auth/AuthPage";
 export function AcceptInvitePage() {
   const { token, pageId } = useParams<{ token: string; pageId?: string }>();
   const navigate = useNavigate();
-  const { user, loading: authLoading, signIn, signUp } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { accepting, result, acceptEmailInvite, acceptLinkInvite } =
     useAcceptInvite();
   const [tried, setTried] = useState(false);
@@ -49,11 +49,11 @@ export function AcceptInvitePage() {
       <div>
         <div className="fixed top-0 left-0 right-0 bg-blue-50 border-b border-blue-100 px-4 py-2.5 text-center z-50">
           <p className="text-sm text-blue-700">
-            Sign in or create an account to accept this invitation.
+            Sign in to accept this invitation.
           </p>
         </div>
         <div className="pt-10">
-          <AuthPage onSignIn={signIn} onSignUp={signUp} />
+          <AuthPage />
         </div>
       </div>
     );

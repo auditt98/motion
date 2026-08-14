@@ -1,56 +1,48 @@
 import { useState, type CSSProperties } from "react";
 import { supabase } from "../../lib/supabase";
 import { useBreakpoint } from "../../hooks/useBreakpoint";
-import { Feather, UsersRound, Sparkles, GitBranch, GitHubLogo } from "../shared/icons";
+import { Feather, UsersRound, Sparkles, GitBranch, GitHubLogo, GoogleLogo } from "../shared/icons";
 
-interface AuthPageProps {
-  onSignIn: (email: string, password: string) => Promise<{ error: unknown }>;
-  onSignUp: (email: string, password: string) => Promise<{ error: unknown }>;
-}
+type Provider = "google" | "github";
 
 const FOREST = "#2E4034";
 const CREAM = "#F4EFE4";
 const SAGE = "#B9C4B6";
 const GOLD = "#E9C77E";
 
-const fieldStyle: CSSProperties = {
-  width: "100%",
-  padding: "12px 13px",
+const oauthButtonStyle: CSSProperties = {
+  gap: 10,
+  padding: "12px 14px",
   borderRadius: 8,
-  border: "1px solid var(--color-border)",
   background: "var(--color-white)",
+  border: "1px solid var(--color-border)",
   color: "var(--color-text-primary)",
+  fontWeight: 600,
   fontSize: 14,
-  outline: "none",
 };
 
-export function AuthPage({ onSignIn, onSignUp }: AuthPageProps) {
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+/**
+ * Sign-in is OAuth only. Who may create an account is enforced server-side by
+ * the `before-user-created` auth hook (see migration 020) — not by this page.
+ */
+export function AuthPage() {
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [signupSuccess, setSignupSuccess] = useState(false);
+  const [pending, setPending] = useState<Provider | null>(null);
   const { isMobile } = useBreakpoint();
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function oauth(provider: Provider) {
     setError(null);
-    setLoading(true);
-    const { error } =
-      mode === "signin" ? await onSignIn(email, password) : await onSignUp(email, password);
-    setLoading(false);
-    if (error) setError((error as Error).message || "Something went wrong");
-    else if (mode === "signup") setSignupSuccess(true);
-  }
-
-  async function oauth(provider: "google" | "github") {
-    setError(null);
+    setPending(provider);
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: window.location.origin },
+      // Return to wherever they started — an invite or agent-consent URL carries
+      // params we must not drop.
+      options: { redirectTo: window.location.href },
     });
-    if (error) setError(error.message);
+    if (error) {
+      setError(error.message);
+      setPending(null);
+    }
   }
 
   const brandPanel = (
@@ -121,143 +113,58 @@ export function AuthPage({ onSignIn, onSignUp }: AuthPageProps) {
     </div>
   );
 
-  const eyebrow = (text: string) => (
-    <div
-      style={{ fontFamily: "var(--font-mono)", fontSize: 11.5, fontWeight: 600, letterSpacing: 1.4, color: "var(--color-text-secondary)" }}
-    >
-      {text}
-    </div>
-  );
-
-  function formPanel(children: React.ReactNode) {
-    return (
-      <div className="flex-1 flex items-center justify-center" style={{ padding: 24 }}>
-        <div style={{ width: 380, maxWidth: "100%" }}>{children}</div>
-      </div>
-    );
-  }
-
-  if (signupSuccess) {
-    return (
-      <div className="min-h-screen flex" style={{ background: "var(--color-bg)" }}>
-        {!isMobile && brandPanel}
-        {formPanel(
-          <div className="flex flex-col" style={{ gap: 12 }}>
-            <div style={{ fontSize: 40 }}>&#x2709;&#xfe0f;</div>
-            <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 500, fontSize: 28, color: "var(--color-text-primary)" }}>
-              Check your email
-            </h1>
-            <p style={{ fontSize: 14.5, color: "var(--color-text-secondary)", lineHeight: 1.5 }}>
-              We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.
-            </p>
-            <button
-              onClick={() => {
-                setSignupSuccess(false);
-                setMode("signin");
-              }}
-              style={{ alignSelf: "start", color: "var(--color-rust)", fontWeight: 600, fontSize: 14 }}
-            >
-              ← Back to sign in
-            </button>
-          </div>,
-        )}
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen flex" style={{ background: "var(--color-bg)" }}>
       {!isMobile && brandPanel}
-      {formPanel(
-        <div className="flex flex-col" style={{ gap: 7 }}>
-          {eyebrow(mode === "signin" ? "WELCOME BACK" : "GET STARTED")}
+      <div className="flex-1 flex items-center justify-center" style={{ padding: 24 }}>
+        <div className="flex flex-col" style={{ width: 380, maxWidth: "100%", gap: 7 }}>
+          <div
+            style={{ fontFamily: "var(--font-mono)", fontSize: 11.5, fontWeight: 600, letterSpacing: 1.4, color: "var(--color-text-secondary)" }}
+          >
+            WELCOME BACK
+          </div>
           <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 500, fontSize: 30, color: "var(--color-text-primary)" }}>
-            {mode === "signin" ? "Sign in to Motion" : "Create your account"}
+            Sign in to Motion
           </h1>
           <p style={{ fontSize: 14.5, color: "var(--color-text-secondary)" }}>
-            {mode === "signin" ? "Continue to your workspace." : "Start writing with people and agents."}
+            Continue to your workspace with your work account.
           </p>
 
           <div className="flex flex-col" style={{ gap: 10, paddingTop: 18 }}>
             <button
-              onClick={() => oauth("github")}
-              className="flex items-center justify-center"
-              style={{ gap: 10, padding: "12px 14px", borderRadius: 8, background: "var(--color-white)", border: "1px solid var(--color-border)", color: "var(--color-text-primary)", fontWeight: 600, fontSize: 14 }}
-            >
-              <GitHubLogo size={18} /> Continue with GitHub
-            </button>
-          </div>
-
-          <div className="flex items-center" style={{ gap: 12, padding: "12px 0" }}>
-            <div style={{ flex: 1, height: 1, background: "var(--color-border)" }} />
-            <span style={{ fontSize: 12.5, color: "var(--color-text-secondary)" }}>or</span>
-            <div style={{ flex: 1, height: 1, background: "var(--color-border)" }} />
-          </div>
-
-          <form onSubmit={handleSubmit} className="flex flex-col" style={{ gap: 14 }}>
-            <div className="flex flex-col" style={{ gap: 7 }}>
-              <label style={{ fontSize: 13, fontWeight: 500, color: "var(--color-text-secondary)" }}>Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="you@example.com"
-                className="focus:border-(--color-rust)"
-                style={fieldStyle}
-              />
-            </div>
-            <div className="flex flex-col" style={{ gap: 7 }}>
-              <div className="flex items-center justify-between">
-                <label style={{ fontSize: 13, fontWeight: 500, color: "var(--color-text-secondary)" }}>Password</label>
-                {mode === "signin" && (
-                  <span style={{ fontSize: 12.5, fontWeight: 500, color: "var(--color-rust)" }}>Forgot password?</span>
-                )}
-              </div>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                placeholder="••••••••••••"
-                className="focus:border-(--color-rust)"
-                style={fieldStyle}
-              />
-            </div>
-
-            {error && (
-              <div style={{ fontSize: 13, color: "var(--color-error)", background: "var(--color-error-light)", padding: "8px 11px", borderRadius: 8 }}>
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
+              onClick={() => oauth("google")}
+              disabled={pending !== null}
               className="flex items-center justify-center disabled:opacity-60"
-              style={{ padding: "13px 16px", borderRadius: 8, background: "var(--color-rust)", color: "#fff", fontWeight: 600, fontSize: 15 }}
+              style={oauthButtonStyle}
             >
-              {loading ? "…" : mode === "signin" ? "Sign in" : "Create account"}
+              <GoogleLogo size={18} />
+              {pending === "google" ? "Redirecting…" : "Continue with Google"}
             </button>
-          </form>
-
-          <div className="flex justify-center" style={{ gap: 5, fontSize: 13.5, paddingTop: 14 }}>
-            <span style={{ color: "var(--color-text-secondary)" }}>
-              {mode === "signin" ? "New to Motion?" : "Already have an account?"}
-            </span>
             <button
-              onClick={() => {
-                setMode(mode === "signin" ? "signup" : "signin");
-                setError(null);
-              }}
-              style={{ fontWeight: 600, color: "var(--color-rust)" }}
+              onClick={() => oauth("github")}
+              disabled={pending !== null}
+              className="flex items-center justify-center disabled:opacity-60"
+              style={oauthButtonStyle}
             >
-              {mode === "signin" ? "Create an account" : "Sign in"}
+              <GitHubLogo size={18} />
+              {pending === "github" ? "Redirecting…" : "Continue with GitHub"}
             </button>
           </div>
-        </div>,
-      )}
+
+          {error && (
+            <div
+              style={{ fontSize: 13, color: "var(--color-error)", background: "var(--color-error-light)", padding: "8px 11px", borderRadius: 8, marginTop: 14 }}
+            >
+              {error}
+            </div>
+          )}
+
+          <p style={{ fontSize: 13, lineHeight: 1.5, color: "var(--color-text-secondary)", paddingTop: 16 }}>
+            Motion is limited to Kelas Sekejap accounts. Your account is created the first time you
+            sign in — no separate signup. If you need access, ask an admin to invite you.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
